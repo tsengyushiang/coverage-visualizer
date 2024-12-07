@@ -3,6 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import HeatmapMaterial from "./Material/HeatmapMaterial";
 import RoomBufferGeometry from "./Geometry/RoomBufferGeometry";
 import Isosurface from "./Isosurface";
+import VolumeRendering from "./VolumeRendering";
 import UniformSampler3D from "./Isosurface/UniformSampler3D";
 
 /** @class */
@@ -30,6 +31,12 @@ class App {
     const room = new THREE.Mesh(this.roomGeometry, this.heatmapMaterial);
     this._scene.add(room);
 
+    this.volumeRendering = new VolumeRendering(
+      samplesY,
+      samplesXZ,
+      samplesScale
+    );
+
     this._signalGroup = new THREE.Group();
     this._scene.add(this._signalGroup);
   }
@@ -37,7 +44,9 @@ class App {
   _updateSamples() {
     if (!this._renderer) return;
     const colors = this.uniformSampler3D.sample(this._renderer);
-    this.isosurface.updateFromColors(colors);
+    if (this.isosurface.parent) this.isosurface.updateFromColors(colors);
+    if (this.volumeRendering.parent)
+      this.volumeRendering.updateTexture3D(colors);
   }
 
   _updateConfig(data) {
@@ -132,6 +141,21 @@ class App {
   }
 
   /**
+   * Sets whether to show the volume rendering or not.
+   * @param {boolean} data A boolean value indicating whether to show the volume rendering.
+   * @example
+   * app.setIsVolumeRendering(true);
+   */
+  setIsVolumeRendering(data) {
+    if (data) {
+      this._scene.add(this.volumeRendering);
+      this._updateSamples();
+    } else {
+      this.volumeRendering.parent?.remove(this.volumeRendering);
+    }
+  }
+
+  /**
    * Sets whether to show the isoSurface or not.
    * @param {boolean} data A boolean value indicating whether to show the isoSurface.
    * @example
@@ -140,6 +164,7 @@ class App {
   setIsIsosurface(data) {
     if (data) {
       this._scene.add(this.isosurface);
+      this._updateSamples();
     } else {
       this.isosurface.parent?.remove(this.isosurface);
     }
@@ -153,6 +178,7 @@ class App {
    */
   setIsoValue(value) {
     this.isosurface.setIsoValue(value);
+    this.volumeRendering.setIsoValue(value);
   }
 
   /**
