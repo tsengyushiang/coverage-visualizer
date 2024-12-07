@@ -50,17 +50,10 @@ class VolumeRendering extends THREE.Mesh {
       this._samplesY
     );
 
-    texture.format = THREE.RedFormat; // Our texture has only one channel (red).
-    texture.type = THREE.UnsignedByteType; // The data type is 8 bit unsighed integer.
-    texture.minFilter = THREE.LinearFilter; // Linear filter for minification.
-    texture.magFilter = THREE.LinearFilter; // Linear filter for maximization.
-
-    // Repeat edge values when sampling outside of texture boundaries.
-    texture.wrapS = THREE.ClampToEdgeWrapping;
-    texture.wrapT = THREE.ClampToEdgeWrapping;
-    texture.wrapR = THREE.ClampToEdgeWrapping;
-
-    // Mark texture for update so that the changes take effect.
+    texture.format = THREE.RedFormat;
+    texture.type = THREE.UnsignedByteType;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
     texture.needsUpdate = true;
 
     this.material.setDataTexture(texture);

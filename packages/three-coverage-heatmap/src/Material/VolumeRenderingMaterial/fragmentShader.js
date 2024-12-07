@@ -2,6 +2,7 @@ const getFragmentShader = () => `
 uniform sampler3D dataTexture;
 uniform vec3 volumeSize;
 uniform float isoValue;
+uniform vec3 color;
 
 varying vec3 vRayDirection;
 varying vec3 vRayOrigin;
@@ -36,8 +37,8 @@ void main() {
       vec3 coord = vec3(point.x / volumeSize.x + 0.5, point.z / volumeSize.z + 0.5, point.y / volumeSize.y);
       float value = texture(dataTexture, coord).x;
 
-      if (value > density && value > isoValue) {
-        gl_FragColor = vec4(1.0, 0.0, 0.0, 0.5);
+      if (value > density && value >= isoValue) {
+        gl_FragColor = vec4(color, 0.5);
         return;
       }
     }

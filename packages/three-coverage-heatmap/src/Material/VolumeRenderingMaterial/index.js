@@ -14,11 +14,11 @@ class VolumeRenderingMaterial extends THREE.ShaderMaterial {
       uniforms: {
         dataTexture: { value: null },
         volumeSize: { value: new THREE.Vector3(1, 1, 1) },
-        planeCount: {
-          value: 0,
-        },
         isoValue: {
           value: 0.8,
+        },
+        color: {
+          value: new THREE.Color(),
         },
       },
       vertexShader: getVertexShader(),
@@ -43,6 +43,10 @@ class VolumeRenderingMaterial extends THREE.ShaderMaterial {
 
     if (isDefined(isoValue)) {
       this.uniforms.isoValue.value = isoValue;
+
+      const color = new THREE.Color();
+      color.setHSL(isoValue, 1, 0.5);
+      this.uniforms.color.value = color;
     }
   }
 
