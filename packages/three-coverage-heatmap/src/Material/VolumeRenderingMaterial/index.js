@@ -23,6 +23,7 @@ class VolumeRenderingMaterial extends THREE.ShaderMaterial {
     super({
       transparent: true,
       uniforms: {
+        dataTexture: { value: null },
         planeCount: {
           value: 0,
         },
@@ -119,6 +120,12 @@ class VolumeRenderingMaterial extends THREE.ShaderMaterial {
         ...Array(MAX_PLANE_COUNT * 2 - planes.length).fill(new THREE.Vector3()),
       ];
     }
+  }
+
+  setDataTexture(texture) {
+    if (this.uniforms.dataTexture.value)
+      this.uniforms.dataTexture.value.dispose();
+    this.uniforms.dataTexture.value = texture;
   }
 }
 

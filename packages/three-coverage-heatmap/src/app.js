@@ -31,7 +31,11 @@ class App {
     const room = new THREE.Mesh(this.roomGeometry, this.heatmapMaterial);
     this._scene.add(room);
 
-    this.volumeRendering = new VolumeRendering();
+    this.volumeRendering = new VolumeRendering(
+      samplesY,
+      samplesXZ,
+      samplesScale
+    );
     this._scene.add(this.volumeRendering);
 
     this._signalGroup = new THREE.Group();
@@ -42,6 +46,7 @@ class App {
     if (!this._renderer) return;
     const colors = this.uniformSampler3D.sample(this._renderer);
     this.isosurface.updateFromColors(colors);
+    this.volumeRendering.updateTexture3D(colors);
   }
 
   _updateConfig(data) {
