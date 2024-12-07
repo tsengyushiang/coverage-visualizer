@@ -3,6 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import HeatmapMaterial from "./Material/HeatmapMaterial";
 import RoomBufferGeometry from "./Geometry/RoomBufferGeometry";
 import Isosurface from "./Isosurface";
+import VolumeRendering from "./VolumeRendering";
 import UniformSampler3D from "./Isosurface/UniformSampler3D";
 
 /** @class */
@@ -30,6 +31,9 @@ class App {
     const room = new THREE.Mesh(this.roomGeometry, this.heatmapMaterial);
     this._scene.add(room);
 
+    this.volumeRendering = new VolumeRendering();
+    this._scene.add(this.volumeRendering);
+
     this._signalGroup = new THREE.Group();
     this._scene.add(this._signalGroup);
   }
@@ -43,6 +47,7 @@ class App {
   _updateConfig(data) {
     this.heatmapMaterial.setUniforms(data);
     this.uniformSampler3D.setUniforms(data);
+    this.volumeRendering.setUniforms(data);
     this._updateSamples();
   }
 
