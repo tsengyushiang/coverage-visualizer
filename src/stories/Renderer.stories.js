@@ -55,6 +55,15 @@ export const Isosurface = {
   },
 };
 
+export const VolumeRendering = {
+  args: {
+    ...args,
+    isVolumeRendering: true,
+    isoValue: 0.5,
+    isHeatmapColor: false,
+  },
+};
+
 export const Heatmap = {
   args: {
     ...args,
