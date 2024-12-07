@@ -36,7 +36,6 @@ class App {
       samplesXZ,
       samplesScale
     );
-    this._scene.add(this.volumeRendering);
 
     this._signalGroup = new THREE.Group();
     this._scene.add(this._signalGroup);
@@ -45,14 +44,14 @@ class App {
   _updateSamples() {
     if (!this._renderer) return;
     const colors = this.uniformSampler3D.sample(this._renderer);
-    this.isosurface.updateFromColors(colors);
-    this.volumeRendering.updateTexture3D(colors);
+    if (this.isosurface.parent) this.isosurface.updateFromColors(colors);
+    if (this.volumeRendering.parent)
+      this.volumeRendering.updateTexture3D(colors);
   }
 
   _updateConfig(data) {
     this.heatmapMaterial.setUniforms(data);
     this.uniformSampler3D.setUniforms(data);
-    this.volumeRendering.setUniforms(data);
     this._updateSamples();
   }
 
@@ -142,6 +141,21 @@ class App {
   }
 
   /**
+   * Sets whether to show the volume rendering or not.
+   * @param {boolean} data A boolean value indicating whether to show the volume rendering.
+   * @example
+   * app.setIsVolumeRendering(true);
+   */
+  setIsVolumeRendering(data) {
+    if (data) {
+      this._scene.add(this.volumeRendering);
+      this._updateSamples();
+    } else {
+      this.volumeRendering.parent?.remove(this.volumeRendering);
+    }
+  }
+
+  /**
    * Sets whether to show the isoSurface or not.
    * @param {boolean} data A boolean value indicating whether to show the isoSurface.
    * @example
@@ -150,6 +164,7 @@ class App {
   setIsIsosurface(data) {
     if (data) {
       this._scene.add(this.isosurface);
+      this._updateSamples();
     } else {
       this.isosurface.parent?.remove(this.isosurface);
     }
@@ -163,6 +178,7 @@ class App {
    */
   setIsoValue(value) {
     this.isosurface.setIsoValue(value);
+    this.volumeRendering.setIsoValue(value);
   }
 
   /**

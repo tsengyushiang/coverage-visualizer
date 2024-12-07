@@ -2,7 +2,7 @@ import * as THREE from "three";
 import VolumeRenderingMaterial from "../Material/VolumeRenderingMaterial";
 
 class VolumeRendering extends THREE.Mesh {
-  constructor(samplesY, samplesXZ) {
+  constructor(samplesY, samplesXZ, sampleScale) {
     const geometry = new THREE.BufferGeometry();
     const vertices = new Float32Array([
       ...[-1.0, -1.0, -1.0],
@@ -18,6 +18,8 @@ class VolumeRendering extends THREE.Mesh {
 
     this._samplesY = samplesY;
     this._samplesXZ = samplesXZ;
+    this._sampleScale = sampleScale;
+    material.setUniforms({ volumeSize: sampleScale });
   }
 
   setUniforms(data) {
@@ -62,6 +64,10 @@ class VolumeRendering extends THREE.Mesh {
     texture.needsUpdate = true;
 
     this.material.setDataTexture(texture);
+  }
+
+  setIsoValue(value) {
+    this.material.setUniforms({ isoValue: value });
   }
 }
 

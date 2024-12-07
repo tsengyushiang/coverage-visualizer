@@ -7,6 +7,7 @@ const Renderer = ({
   textCoordSoffset,
   isPointcloud,
   isIsosurface,
+  isVolumeRendering,
   isoValue,
   isHeatmapColor,
   isSignalIndex,
@@ -34,6 +35,10 @@ const Renderer = ({
   useEffect(() => {
     ThreeApp.setIsIsosurface(isIsosurface);
   }, [isIsosurface]);
+
+  useEffect(() => {
+    ThreeApp.setIsVolumeRendering(isVolumeRendering);
+  }, [isVolumeRendering]);
 
   useEffect(() => {
     ThreeApp.setIsoValue(isoValue);

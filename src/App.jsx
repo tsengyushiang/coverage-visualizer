@@ -119,6 +119,7 @@ const getPlanes = (percentage) => {
 const App = () => {
   const [isPointcloud, setIsPointcloud] = useState(false);
   const [isIsosurface, setIsIsosurface] = useState(false);
+  const [isVolumeRendering, setIsVolumeRendering] = useState(false);
   const [isHeatmapColor, setIsHeatmapColor] = useState(false);
   const [isSignalIndex, setIsSignalIndex] = useState(false);
   const [hasFurniture, setHasFurniture] = useState(true);
@@ -204,6 +205,14 @@ const App = () => {
         />
         <label htmlFor="isosurface">show isosurface</label>
         <br />
+        <input
+          type="checkbox"
+          id={"VolumeRendering"}
+          onChange={(e) => setIsVolumeRendering(e.target.checked)}
+          checked={isVolumeRendering}
+        />
+        <label htmlFor="VolumeRendering">show Volume Rendering</label>
+        <br />
         <label htmlFor="isoValue">isoValue</label>
         <input
           type="range"
@@ -275,6 +284,7 @@ const App = () => {
         textCoordSoffset={[0.5, 0.5]}
         isPointcloud={isPointcloud}
         isIsosurface={isIsosurface}
+        isVolumeRendering={isVolumeRendering}
         isoValue={isoValue}
         isHeatmapColor={isHeatmapColor}
         isSignalIndex={isSignalIndex}
