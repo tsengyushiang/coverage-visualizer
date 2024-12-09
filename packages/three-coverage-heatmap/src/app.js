@@ -37,21 +37,37 @@ class App {
       samplesScale
     );
 
+    this.volumeRenderingWoTexture3d = new VolumeRendering(
+      samplesY,
+      samplesXZ,
+      samplesScale,
+      true
+    );
+
     this._signalGroup = new THREE.Group();
     this._scene.add(this._signalGroup);
   }
 
   _updateSamples() {
     if (!this._renderer) return;
-    const colors = this.uniformSampler3D.sample(this._renderer);
-    if (this.isosurface.parent) this.isosurface.updateFromColors(colors);
-    if (this.volumeRendering.parent)
+    let colors = undefined;
+    if (this.uniformSampler3D._points.parent) {
+      if (!colors) colors = this.uniformSampler3D.sample(this._renderer);
+    }
+    if (this.isosurface.parent) {
+      if (!colors) colors = this.uniformSampler3D.sample(this._renderer);
+      this.isosurface.updateFromColors(colors);
+    }
+    if (this.volumeRendering.parent) {
+      if (!colors) colors = this.uniformSampler3D.sample(this._renderer);
       this.volumeRendering.updateTexture3D(colors);
+    }
   }
 
   _updateConfig(data) {
     this.heatmapMaterial.setUniforms(data);
     this.uniformSampler3D.setUniforms(data);
+    this.volumeRenderingWoTexture3d.setUniforms(data);
     this._updateSamples();
   }
 
@@ -141,6 +157,22 @@ class App {
   }
 
   /**
+   * Sets whether to show the real-time volume rendering or not.
+   * @param {boolean} data A boolean value indicating whether to show the volume rendering.
+   * @example
+   * app.setIsRealTimeVolumeRendering(true);
+   */
+  setIsRealTimeVolumeRendering(data) {
+    if (data) {
+      this._scene.add(this.volumeRenderingWoTexture3d);
+    } else {
+      this.volumeRenderingWoTexture3d.parent?.remove(
+        this.volumeRenderingWoTexture3d
+      );
+    }
+  }
+
+  /**
    * Sets whether to show the volume rendering or not.
    * @param {boolean} data A boolean value indicating whether to show the volume rendering.
    * @example
@@ -179,6 +211,7 @@ class App {
   setIsoValue(value) {
     this.isosurface.setIsoValue(value);
     this.volumeRendering.setIsoValue(value);
+    this.volumeRenderingWoTexture3d.setIsoValue(value);
   }
 
   /**

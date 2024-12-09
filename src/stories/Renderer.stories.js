@@ -64,6 +64,15 @@ export const VolumeRendering = {
   },
 };
 
+export const RealTimeVolumeRendering = {
+  args: {
+    ...args,
+    isRealTimeVolumeRendering: true,
+    isoValue: 0.5,
+    isHeatmapColor: false,
+  },
+};
+
 export const Heatmap = {
   args: {
     ...args,

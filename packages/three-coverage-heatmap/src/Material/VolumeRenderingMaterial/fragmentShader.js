@@ -1,3 +1,48 @@
+import calculateIntensity from "../heatmap.glsl";
+
+const getFragmentShaderWoTexture3D = (signalCount, aabbCount, planeCount) => `
+#define SIGNAL_COUNT ${signalCount}
+#define AABB_COUNT ${aabbCount * 2}
+#define PLANE_COUNT ${planeCount * 2}
+
+uniform vec3 volumeSize;
+uniform float isoValue;
+uniform vec3 color;
+
+varying vec3 vRayDirection;
+varying vec3 vRayOrigin;
+
+${calculateIntensity}
+
+void main() {
+
+  vec3 aabbmin = vec3(-volumeSize.x / 2.0, 0.0, -volumeSize.z / 2.0);
+  vec3 aabbmax = vec3(volumeSize.x / 2.0, volumeSize.y, volumeSize.z / 2.0);
+  vec2 intersection = intersectAABB(vRayOrigin, vRayDirection, aabbmin, aabbmax);
+
+  if (intersection.x <= intersection.y) {
+    vec3 entryPoint = vRayOrigin + vRayDirection * intersection.x;
+    vec3 exitPoint = vRayOrigin + vRayDirection * intersection.y;
+    vec3 entryToExit = exitPoint - entryPoint;
+
+    float density = 0.0;
+    for (float i = 0.0; i < 1.0; i += 4e-2) {
+      vec3 point = entryPoint + entryToExit * i;
+      Result result = getSignalDensity(vec4(point, 1.0));
+      float value = result.density;
+
+      if (value > density && value >= isoValue) {
+        gl_FragColor = vec4(color, 0.5);
+        return;
+      }
+    }
+  }
+  discard;
+
+}
+
+`;
+
 const getFragmentShader = () => `
 uniform sampler3D dataTexture;
 uniform vec3 volumeSize;
@@ -47,4 +92,4 @@ void main() {
 }
 `;
 
-export { getFragmentShader };
+export { getFragmentShader, getFragmentShaderWoTexture3D };
