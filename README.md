@@ -38,3 +38,4 @@ For further details, you can read the source code of the [fragmenet shader](./pa
 - [Cisco DNA Center’s Wireless 3D Analyzer](https://community.cisco.com/t5/cisco-catalyst-center/introducing-the-wireless-3d-analyzer-on-cisco-dna-center-2-2-3-x/td-p/4530995)
 - [ray-aabb intersection](https://gist.github.com/DomNomNom/46bb1ce47f68d255fd5d)
 - [ray-triangle intersection](https://stackoverflow.com/questions/59257678/intersect-a-ray-with-a-triangle-in-glsl-c)
+- [3D volume rendering with WebGL / Three.js](https://observablehq.com/@mroehlig/3d-volume-rendering-with-webgl-three-js)
