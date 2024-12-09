@@ -8,6 +8,7 @@ const Renderer = ({
   isPointcloud,
   isIsosurface,
   isVolumeRendering,
+  isRealTimeVolumeRendering,
   isoValue,
   isHeatmapColor,
   isSignalIndex,
@@ -39,6 +40,10 @@ const Renderer = ({
   useEffect(() => {
     ThreeApp.setIsVolumeRendering(isVolumeRendering);
   }, [isVolumeRendering]);
+
+  useEffect(() => {
+    ThreeApp.setIsRealTimeVolumeRendering(isRealTimeVolumeRendering);
+  }, [isRealTimeVolumeRendering]);
 
   useEffect(() => {
     ThreeApp.setIsoValue(isoValue);

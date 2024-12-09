@@ -120,6 +120,8 @@ const App = () => {
   const [isPointcloud, setIsPointcloud] = useState(false);
   const [isIsosurface, setIsIsosurface] = useState(false);
   const [isVolumeRendering, setIsVolumeRendering] = useState(false);
+  const [isRealTimeVolumeRendering, setIsRealTimeVolumeRendering] =
+    useState(false);
   const [isHeatmapColor, setIsHeatmapColor] = useState(false);
   const [isSignalIndex, setIsSignalIndex] = useState(false);
   const [hasFurniture, setHasFurniture] = useState(true);
@@ -179,6 +181,12 @@ const App = () => {
       <div
         style={{
           position: "fixed",
+          bottom: "0",
+          padding: "20px",
+          margin: "10px",
+          border: "1px solid gray",
+          borderRadius: "10px",
+          background: "#ffffff36",
         }}
       >
         <input
@@ -212,6 +220,16 @@ const App = () => {
           checked={isVolumeRendering}
         />
         <label htmlFor="VolumeRendering">show Volume Rendering</label>
+        <br />
+        <input
+          type="checkbox"
+          id={"RealTimeVolumeRendering"}
+          onChange={(e) => setIsRealTimeVolumeRendering(e.target.checked)}
+          checked={isRealTimeVolumeRendering}
+        />
+        <label htmlFor="RealTimeVolumeRendering">
+          show Real-Time Volume Rendering
+        </label>
         <br />
         <label htmlFor="isoValue">isoValue</label>
         <input
@@ -285,6 +303,7 @@ const App = () => {
         isPointcloud={isPointcloud}
         isIsosurface={isIsosurface}
         isVolumeRendering={isVolumeRendering}
+        isRealTimeVolumeRendering={isRealTimeVolumeRendering}
         isoValue={isoValue}
         isHeatmapColor={isHeatmapColor}
         isSignalIndex={isSignalIndex}
