@@ -119,6 +119,7 @@ const getPlanes = (percentage) => {
 const App = () => {
   const [isPointcloud, setIsPointcloud] = useState(false);
   const [isIsosurface, setIsIsosurface] = useState(false);
+  const [labelPosition, setLabelPosition] = useState([]);
   const [isVolumeRendering, setIsVolumeRendering] = useState(false);
   const [isRealTimeVolumeRendering, setIsRealTimeVolumeRendering] =
     useState(false);
@@ -159,8 +160,71 @@ const App = () => {
     setSignalIntensities(copy);
   };
 
+  const labels = signals.map((signal, index) => {
+    return {
+      position: signal,
+      onViewportChange: (x, y) =>
+        setLabelPosition((prev) => {
+          const copy = [...prev];
+          copy[index] = [x, y];
+          return copy;
+        }),
+    };
+  });
+
   return (
     <>
+      <Renderer
+        texture={"./floorplan.png"}
+        textCoordScale={[1 / 20, 1 / 20]}
+        textCoordSoffset={[0.5, 0.5]}
+        isPointcloud={isPointcloud}
+        isIsosurface={isIsosurface}
+        isVolumeRendering={isVolumeRendering}
+        isRealTimeVolumeRendering={isRealTimeVolumeRendering}
+        isoValue={isoValue}
+        isHeatmapColor={isHeatmapColor}
+        isSignalIndex={isSignalIndex}
+        signalIntensities={signalIntensities}
+        signals={signals}
+        aabbs={aabbs}
+        planes={planes}
+        labels={labels}
+      >
+        {labelPosition.map((label, index) => {
+          return (
+            <div
+              key={index}
+              style={{
+                position: "absolute",
+                left: `${label[0] * 100}%`,
+                top: `${label[1] * 100}%`,
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px",
+                border: "1px solid gray",
+                borderRadius: "20px 20px 20px 0px",
+                padding: "10px",
+                height: "47px",
+                transform: "translate(0%, -100%)",
+                background: "#ffffff36",
+              }}
+            >
+              <label htmlFor={`signal${index}`}>{`Signal Strength`}</label>
+              <input
+                type="range"
+                id={`signal${index}`}
+                min={1e-3}
+                max={30}
+                step={1e-1}
+                onChange={onIntensityChange(index)}
+                value={signalIntensities[index]}
+              />
+              <br />
+            </div>
+          );
+        })}
+      </Renderer>
       <div
         style={{
           position: "fixed",
@@ -196,6 +260,14 @@ const App = () => {
           checked={isHeatmapColor}
         />
         <label htmlFor="heatmapColor">show heatmap</label>
+        <br />
+        <input
+          type="checkbox"
+          id={"signalIndex"}
+          onChange={(e) => setIsSignalIndex(e.target.checked)}
+          checked={isSignalIndex}
+        />
+        <label htmlFor="signalIndex">show signal index map</label>
         <br />
         <input
           type="checkbox"
@@ -242,24 +314,6 @@ const App = () => {
           value={isoValue}
         />
         <br />
-        {signalIntensities.map((intensity, index) => {
-          const id = `signal${index}_intensity`;
-          return (
-            <React.Fragment key={id}>
-              <label htmlFor={id}>{id}</label>
-              <input
-                type="range"
-                id={id}
-                min={1e-3}
-                max={30}
-                step={1e-1}
-                onChange={onIntensityChange(index)}
-                value={intensity}
-              />
-              <br />
-            </React.Fragment>
-          );
-        })}
         <input
           type="checkbox"
           id={"wall"}
@@ -276,14 +330,6 @@ const App = () => {
         />
         <label htmlFor="furniture">has furniture</label>
         <br />
-        <input
-          type="checkbox"
-          id={"signalIndex"}
-          onChange={(e) => setIsSignalIndex(e.target.checked)}
-          checked={isSignalIndex}
-        />
-        <label htmlFor="signalIndex">show signal index map</label>
-        <br />
         <label htmlFor="door">Door</label>
         <input
           type="range"
@@ -296,22 +342,6 @@ const App = () => {
         />
         <br />
       </div>
-      <Renderer
-        texture={"./floorplan.png"}
-        textCoordScale={[1 / 20, 1 / 20]}
-        textCoordSoffset={[0.5, 0.5]}
-        isPointcloud={isPointcloud}
-        isIsosurface={isIsosurface}
-        isVolumeRendering={isVolumeRendering}
-        isRealTimeVolumeRendering={isRealTimeVolumeRendering}
-        isoValue={isoValue}
-        isHeatmapColor={isHeatmapColor}
-        isSignalIndex={isSignalIndex}
-        signalIntensities={signalIntensities}
-        signals={signals}
-        aabbs={aabbs}
-        planes={planes}
-      />
     </>
   );
 };

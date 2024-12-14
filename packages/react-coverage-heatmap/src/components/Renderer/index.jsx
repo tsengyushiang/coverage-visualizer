@@ -16,6 +16,8 @@ const Renderer = ({
   signals,
   aabbs,
   planes,
+  labels,
+  children,
 }) => {
   const [ThreeApp] = useState(new ThreeCoverageHeatmap());
   const divRef = useRef(null);
@@ -90,6 +92,17 @@ const Renderer = ({
     };
   }, []);
 
+  useEffect(() => {
+    ThreeApp.setBillboard(
+      labels.map((labels) => {
+        return {
+          position: labels.position,
+          onViewportChange: labels.onViewportChange,
+        };
+      })
+    );
+  }, [signals]);
+
   return (
     <div
       ref={divRef}
@@ -97,9 +110,11 @@ const Renderer = ({
         width: "100%",
         height: "100%",
         overflow: "hidden",
+        position: "relative",
       }}
     >
       <canvas ref={canvasRef} />
+      {children}
     </div>
   );
 };

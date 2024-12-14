@@ -44,8 +44,8 @@ class App {
       true
     );
 
-    this._signalGroup = new THREE.Group();
-    this._scene.add(this._signalGroup);
+    this._billboardGroup = new THREE.Group();
+    this._scene.add(this._billboardGroup);
   }
 
   _updateSamples() {
@@ -82,7 +82,6 @@ class App {
    */
   setSignal(data) {
     if (!data) return;
-    this._signalGroup.clear();
     data.forEach((position) => {
       const geometry = new THREE.SphereGeometry(0.1, 16, 16);
       const material = new THREE.MeshBasicMaterial({
@@ -91,7 +90,6 @@ class App {
       });
       const accessPoint = new THREE.Mesh(geometry, material);
       accessPoint.position.fromArray(position);
-      this._signalGroup.add(accessPoint);
     });
 
     this._updateConfig({
@@ -149,6 +147,7 @@ class App {
   setIsPointcloud(data) {
     if (data) {
       this._scene.add(this.uniformSampler3D._points);
+      this._updateSamples();
     } else {
       this.uniformSampler3D._points.parent?.remove(
         this.uniformSampler3D._points
@@ -271,6 +270,30 @@ class App {
         mapScale: new THREE.Vector2().fromArray(scale),
         mapOffset: new THREE.Vector2().fromArray(offset),
       });
+  }
+
+  /**
+   * Sets the floorplan used as a texture for 2D billboards.
+   * @param {Array<{position: number[], onViewportChange: function(number, number): void}>} objects - An array of objects representing the 2D billboards.
+   * Each object should have the following properties:
+   * - position: {number[]} An array of three numbers [x, y, z] indicating the position of the billboard in 3D space.
+   * - onViewportChange: {function(number, number): void} A callback function that receives the x and y screen coordinates when the viewport changes.
+   *
+   * @example
+   * app.setBillboard([{position: [0, 0, 0], onViewportChange: (x, y) => console.log(x, y)}]);
+   */
+  setBillboard(objects) {
+    this._billboardGroup.clear();
+    objects.forEach((object) => {
+      const mesh = new THREE.Mesh();
+      mesh.frustumCulled = false;
+      mesh.position.fromArray(object.position);
+      mesh.onBeforeRender = (rendering, scene, camera) => {
+        const coord = mesh.position.clone().project(camera);
+        object.onViewportChange(coord.x / 2 + 0.5, -coord.y / 2 + 0.5);
+      };
+      this._billboardGroup.add(mesh);
+    });
   }
 
   /**
