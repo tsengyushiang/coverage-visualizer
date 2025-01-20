@@ -129,7 +129,7 @@ vec3 getIndicesMapColor(vec2 fragCoord, float anglePercentage, float gridSize) {
   bool isLineFragment = pointToLineDistance(direction) < 0.05;
 
   if (isLineFragment) {
-    return hsvToRgb(anglePercentage / 3.14, 1.0, 1.0);
+    return hsvToRgb(anglePercentage, 1.0, 1.0);
   }
 
   return bgColor;
@@ -141,6 +141,7 @@ struct Result {
 };
 
 Result getSignalDensity(vec4 world_position) {
+  float maxSignalIndex = 1.0;
   vec3 color = vec3(0.0, 0.0, 0.0);
   float density = 1e-3;
   for (int signalIndex = 0; signalIndex < signalCount; signalIndex++) {
@@ -181,13 +182,15 @@ Result getSignalDensity(vec4 world_position) {
 
     if (newDensity > density) {
       density = newDensity;
+      maxSignalIndex = float(signalIndex) / float(signalCount);
     }
     if (newDensity > 1e-3)
       color += getIndicesMapColor(gl_FragCoord.xy, float(signalIndex) / float(signalCount), 15.0);
   }
+  bool isBackground = distance(color, vec3(0.0)) < 1e-3;
 
   Result result;
-  result.signalColor = vec4(color, 1.0);
+  result.signalColor = vec4(isBackground ? hsvToRgb(maxSignalIndex, 1.0, 0.3) : color, 1.0);
   result.density = density;
   return result;
 }

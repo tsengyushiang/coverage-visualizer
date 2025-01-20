@@ -35,13 +35,8 @@ void main() {
   }
 
   Result result = getSignalDensity(world_position);
-  if (isSignalIndex) {
-    bool isBackground = distance(result.signalColor.xyz, vec3(0.0)) < 1e-3;
-    gl_FragColor = isBackground ? color : mix(color, result.signalColor, 0.4);
-  } else {
-    vec4 visualizedDensity = vec4(opacityToHSV(result.density), 1.0);
-    gl_FragColor = mix(color, visualizedDensity, 0.4);
-  }
+  vec4 visualizedDensity = isSignalIndex ? result.signalColor : vec4(opacityToHSV(result.density), 1.0);
+  gl_FragColor = mix(color, visualizedDensity, 0.4);
 }
 `;
 
