@@ -121,12 +121,12 @@ vec3 getIndicesMapColor(vec2 fragCoord, float anglePercentage, float gridSize) {
   float x = mod(fragCoord.x, gridSize) / gridSize;
   float y = mod(fragCoord.y, gridSize) / gridSize;
 
-  if (distance(vec2(x, y), vec2(0.5, 0.5)) > 0.3) {
+  if (distance(vec2(x, y), vec2(0.5, 0.5)) > 0.4) {
     return bgColor;
   }
 
   vec2 direction = rotate(vec2(x - 0.5, y - 0.5), anglePercentage * 3.1415926535897932384626433832795) + vec2(0.5, 0.5);
-  bool isLineFragment = pointToLineDistance(direction) < 0.03;
+  bool isLineFragment = pointToLineDistance(direction) < 0.05;
 
   if (isLineFragment) {
     return hsvToRgb(anglePercentage / 3.14, 1.0, 1.0);
