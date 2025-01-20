@@ -67,63 +67,6 @@ bool intersect(vec3 origin, vec3 rayDir, vec3 p0, vec3 p1, vec3 p2, float maxDis
   return !noIntersections;
 }
 
-struct Result {
-  float maxSignalIndex;
-  float density;
-};
-
-Result getSignalDensity(vec4 world_position) {
-  float maxSignalIndex = 1.0;
-  float density = 1e-3;
-  for (int signalIndex = 0; signalIndex < signalCount; signalIndex++) {
-    float wallDistance = 0.0;
-    vec3 signalPosition = signals[signalIndex].xyz;
-    vec3 rayDir = normalize(world_position.xyz - signalPosition);
-
-    float totalDistance = distance(world_position.xyz, signalPosition);
-
-    for (int aabbIndex = 0; aabbIndex < aabbCount; aabbIndex++) {
-      vec2 nearFar = intersectAABB(signalPosition, rayDir, aabbs[2 * aabbIndex], aabbs[2 * aabbIndex + 1]);
-      bool noIntersections = nearFar.x > nearFar.y || nearFar.x < 0.0 || nearFar.x > totalDistance - 1e-3;
-      if (noIntersections) {
-        continue;
-      }
-
-      wallDistance += nearFar.y - nearFar.x;
-    }
-
-    for (int planeIndex = 0; planeIndex < planeCount; planeIndex++) {
-      vec3 min = planes[2 * planeIndex];
-      vec3 max = planes[2 * planeIndex + 1];
-
-      vec3 p0 = min;
-      vec3 p1 = vec3(max.x, min.y, max.z);
-      vec3 p2 = max;
-      vec3 p3 = vec3(min.x, max.y, min.z);
-
-      if (!intersect(signalPosition, rayDir, p0, p1, p2, totalDistance) && !intersect(signalPosition, rayDir, p3, p0, p2, totalDistance)) {
-        continue;
-      }
-
-      wallDistance += 0.15;
-    }
-
-    float wallDecay = wallDistance * 0.2;
-    float newDensity = decay(totalDistance - wallDistance, signalIntensities[signalIndex]) - wallDecay;
-
-    if (newDensity > density) {
-      density = newDensity;
-      maxSignalIndex = float(signalIndex) / float(signalCount);
-    }
-  }
-
-  Result result;
-  result.maxSignalIndex = maxSignalIndex;
-  result.density = density;
-  return result;
-}
-
-
 vec3 hsvToRgb(float h, float s, float v) {
   if (s == 0.0) {
     return vec3(v, v, v);
@@ -172,8 +115,8 @@ float pointToLineDistance(vec2 point) {
   return abs(A * x0 + B * y0 + C) / sqrt(A * A + B * B);
 }
 
-vec4 getIndicesMapColor(vec2 fragCoord, float anglePercentage, float gridSize) {
-  vec4 bgColor = vec4(0.0, 0.0, 0.0, 1.0);
+vec3 getIndicesMapColor(vec2 fragCoord, float anglePercentage, float gridSize) {
+  vec3 bgColor = vec3(0.0, 0.0, 0.0);
 
   float x = mod(fragCoord.x, gridSize) / gridSize;
   float y = mod(fragCoord.y, gridSize) / gridSize;
@@ -186,12 +129,67 @@ vec4 getIndicesMapColor(vec2 fragCoord, float anglePercentage, float gridSize) {
   bool isLineFragment = pointToLineDistance(direction) < 0.03;
 
   if (isLineFragment) {
-    return vec4(hsvToRgb(anglePercentage / 3.14, 1.0, 1.0), 1.0);
+    return hsvToRgb(anglePercentage / 3.14, 1.0, 1.0);
   }
 
   return bgColor;
 }
 
+struct Result {
+  vec4 signalColor;
+  float density;
+};
 
+Result getSignalDensity(vec4 world_position) {
+  vec3 color = vec3(0.0, 0.0, 0.0);
+  float density = 1e-3;
+  for (int signalIndex = 0; signalIndex < signalCount; signalIndex++) {
+    float wallDistance = 0.0;
+    vec3 signalPosition = signals[signalIndex].xyz;
+    vec3 rayDir = normalize(world_position.xyz - signalPosition);
+
+    float totalDistance = distance(world_position.xyz, signalPosition);
+
+    for (int aabbIndex = 0; aabbIndex < aabbCount; aabbIndex++) {
+      vec2 nearFar = intersectAABB(signalPosition, rayDir, aabbs[2 * aabbIndex], aabbs[2 * aabbIndex + 1]);
+      bool noIntersections = nearFar.x > nearFar.y || nearFar.x < 0.0 || nearFar.x > totalDistance - 1e-3;
+      if (noIntersections) {
+        continue;
+      }
+
+      wallDistance += nearFar.y - nearFar.x;
+    }
+
+    for (int planeIndex = 0; planeIndex < planeCount; planeIndex++) {
+      vec3 min = planes[2 * planeIndex];
+      vec3 max = planes[2 * planeIndex + 1];
+
+      vec3 p0 = min;
+      vec3 p1 = vec3(max.x, min.y, max.z);
+      vec3 p2 = max;
+      vec3 p3 = vec3(min.x, max.y, min.z);
+
+      if (!intersect(signalPosition, rayDir, p0, p1, p2, totalDistance) && !intersect(signalPosition, rayDir, p3, p0, p2, totalDistance)) {
+        continue;
+      }
+
+      wallDistance += 0.15;
+    }
+
+    float wallDecay = wallDistance * 0.2;
+    float newDensity = decay(totalDistance - wallDistance, signalIntensities[signalIndex]) - wallDecay;
+
+    if (newDensity > density) {
+      density = newDensity;
+    }
+    if (newDensity > 1e-3)
+      color += getIndicesMapColor(gl_FragCoord.xy, float(signalIndex) / float(signalCount), 15.0);
+  }
+
+  Result result;
+  result.signalColor = vec4(color, 1.0);
+  result.density = density;
+  return result;
+}
 `;
 export default calculateIntensity;
