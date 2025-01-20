@@ -122,5 +122,76 @@ Result getSignalDensity(vec4 world_position) {
   result.density = density;
   return result;
 }
+
+
+vec3 hsvToRgb(float h, float s, float v) {
+  if (s == 0.0) {
+    return vec3(v, v, v);
+  }
+
+  float h6 = h * 6.0;
+  int i = int(floor(h6));
+  float f = h6 - float(i);
+  float p = v * (1.0 - s);
+  float q = v * (1.0 - f * s);
+  float t = v * (1.0 - (1.0 - f) * s);
+
+  if (i == 0) {
+    return vec3(v, t, p);
+  } else if (i == 1) {
+    return vec3(q, v, p);
+  } else if (i == 2) {
+    return vec3(p, v, t);
+  } else if (i == 3) {
+    return vec3(p, q, v);
+  } else if (i == 4) {
+    return vec3(t, p, v);
+  } else {
+    return vec3(v, p, q);
+  }
+}
+
+vec2 rotate(vec2 v, float angle) {
+  float cosA = cos(angle);
+  float sinA = sin(angle);
+
+  return vec2(
+    v.x * cosA - v.y * sinA,
+    v.x * sinA + v.y * cosA
+  );
+}
+
+float pointToLineDistance(vec2 point) {
+  float x0 = point.x;
+  float y0 = point.y;
+
+  float A = 1.0;
+  float B = -1.0;
+  float C = 0.0;
+
+  return abs(A * x0 + B * y0 + C) / sqrt(A * A + B * B);
+}
+
+vec4 getIndicesMapColor(vec2 fragCoord, float anglePercentage, float gridSize) {
+  vec4 bgColor = vec4(0.0, 0.0, 0.0, 1.0);
+
+  float x = mod(fragCoord.x, gridSize) / gridSize;
+  float y = mod(fragCoord.y, gridSize) / gridSize;
+
+  if (distance(vec2(x, y), vec2(0.5, 0.5)) > 0.3) {
+    return bgColor;
+  }
+
+  vec2 direction = rotate(vec2(x - 0.5, y - 0.5), anglePercentage * 3.1415926535897932384626433832795) + vec2(0.5, 0.5);
+  bool isLineFragment = pointToLineDistance(direction) < 0.03;
+
+  if (isLineFragment) {
+    return vec4(hsvToRgb(anglePercentage / 3.14, 1.0, 1.0), 1.0);
+  }
+
+  return bgColor;
+}
+
+
 `;
 export default calculateIntensity;
