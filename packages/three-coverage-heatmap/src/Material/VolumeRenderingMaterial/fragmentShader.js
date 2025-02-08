@@ -28,7 +28,7 @@ void main() {
     float density = 0.0;
     for (float i = 0.0; i < 1.0; i += 4e-2) {
       vec3 point = entryPoint + entryToExit * i;
-      Result result = getSignalDensity(vec4(point, 1.0));
+      Result result = getSignalDensity(vec4(point, 1.0), vec2(0.0));
       float value = result.density;
 
       if (value > density && value >= isoValue) {

@@ -140,7 +140,7 @@ struct Result {
   float density;
 };
 
-Result getSignalDensity(vec4 world_position) {
+Result getSignalDensity(vec4 world_position, vec2 indexMapCoordinate) {
   float maxSignalIndex = 1.0;
   vec3 color = vec3(0.0, 0.0, 0.0);
   float density = 1e-3;
@@ -185,7 +185,7 @@ Result getSignalDensity(vec4 world_position) {
       maxSignalIndex = float(signalIndex) / float(signalCount);
     }
     if (newDensity > 1e-3)
-      color += getIndicesMapColor(gl_FragCoord.xy, float(signalIndex) / float(signalCount), 15.0);
+      color += getIndicesMapColor(indexMapCoordinate, float(signalIndex) / float(signalCount), 0.5);
   }
   bool isBackground = distance(color, vec3(0.0)) < 1e-3;
 

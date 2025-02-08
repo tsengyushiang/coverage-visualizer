@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import ThreeCoverageHeatmap from "three-coverage-heatmap";
+
+const ThreeApp = new ThreeCoverageHeatmap();
 
 const Renderer = ({
   texture,
@@ -19,7 +21,6 @@ const Renderer = ({
   labels,
   children,
 }) => {
-  const [ThreeApp] = useState(new ThreeCoverageHeatmap());
   const divRef = useRef(null);
   const canvasRef = useRef(null);
 

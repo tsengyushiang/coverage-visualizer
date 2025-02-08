@@ -1,5 +1,83 @@
 import * as THREE from "three";
 
+const getWorldUvBoxGeometry = ({
+  width,
+  height,
+  depth,
+  center,
+  quaternion,
+}) => {
+  const frontPlane = [
+    [0, 0],
+    [0, 1],
+    [1, 0],
+    [1, 1],
+    [1, 0],
+    [0, 1],
+  ];
+  const BackPlane = [
+    [0, 0],
+    [1, 0],
+    [0, 1],
+    [1, 1],
+    [0, 1],
+    [1, 0],
+  ];
+
+  const offset = new THREE.Vector3(-width / 2, -height / 2, -depth / 2);
+  const vertices = [
+    ...frontPlane.flatMap((v) =>
+      new THREE.Vector3()
+        .fromArray([v[0] * width, height, v[1] * depth])
+        .add(offset)
+        .applyQuaternion(quaternion)
+        .add(center)
+        .toArray()
+    ),
+    ...frontPlane.flatMap((v) =>
+      new THREE.Vector3()
+        .fromArray([v[0] * width, v[1] * height, 0])
+        .add(offset)
+        .applyQuaternion(quaternion)
+        .add(center)
+        .toArray()
+    ),
+    ...frontPlane.flatMap((v) =>
+      new THREE.Vector3()
+        .fromArray([0, v[0] * height, v[1] * depth])
+        .add(offset)
+        .applyQuaternion(quaternion)
+        .add(center)
+        .toArray()
+    ),
+    ...BackPlane.flatMap((v) =>
+      new THREE.Vector3()
+        .fromArray([v[0] * width, v[1] * height, depth])
+        .add(offset)
+        .applyQuaternion(quaternion)
+        .add(center)
+        .toArray()
+    ),
+    ...BackPlane.flatMap((v) =>
+      new THREE.Vector3()
+        .fromArray([width, v[0] * height, v[1] * depth])
+        .add(offset)
+        .applyQuaternion(quaternion)
+        .add(center)
+        .toArray()
+    ),
+  ];
+
+  const uvs = [
+    ...frontPlane.flatMap(([u, v]) => [u * width, v * depth]),
+    ...frontPlane.flatMap(([u, v]) => [u * width, v * height]),
+    ...frontPlane.flatMap(([u, v]) => [u * height, v * depth]),
+    ...BackPlane.flatMap(([u, v]) => [u * width, v * height]),
+    ...BackPlane.flatMap(([u, v]) => [u * height, v * depth]),
+  ];
+  return { vertices, uvs };
+};
+
 /**
  * Represents a room with control over its features like walls, doors, furniture and signals.
  * @class
@@ -11,32 +89,39 @@ class RoomBufferGeometry extends THREE.BufferGeometry {
     this.aabbArray = [];
     this.PLANE_THICKNESS = 8e-2;
     this.planeArray = [];
-    this.floorVertices = [];
+    this.width = 0;
+    this.length = 0;
   }
 
   _updateGeometry() {
-    const aabbVertices = this.aabbArray.flatMap(([min, max]) => {
-      const width = max[0] - min[0];
-      const height = max[1] - min[1];
-      const depth = max[2] - min[2];
+    const aabbs = this.aabbArray.map(([min, max]) => {
+      const width = Math.abs(max[0] - min[0]);
+      const height = Math.abs(max[1] - min[1]);
+      const depth = Math.abs(max[2] - min[2]);
 
-      const aabbGeometry = new THREE.BoxGeometry(width, height, depth);
-      aabbGeometry.translate(
+      const center = new THREE.Vector3(
         (max[0] + min[0]) / 2,
         (max[1] + min[1]) / 2,
         (max[2] + min[2]) / 2
       );
 
-      const vertices = [...aabbGeometry.attributes.position.array];
-      const index = [...aabbGeometry.getIndex().array];
-      const data = index.flatMap((index) => [
-        vertices[index * 3],
-        vertices[index * 3 + 1],
-        vertices[index * 3 + 2],
-      ]);
-      return data;
+      const { vertices, uvs } = getWorldUvBoxGeometry({
+        width,
+        height,
+        depth,
+        center,
+        quaternion: new THREE.Quaternion(0, 0, 0, 1),
+      });
+
+      return {
+        vertices,
+        uvs,
+      };
     });
-    const planeVertices = this.planeArray.flatMap(([min, max]) => {
+    const aabbVertices = aabbs.flatMap((aabb) => aabb.vertices);
+    const aabbUvs = aabbs.flatMap((aabb) => aabb.uvs);
+
+    const planes = this.planeArray.map(([min, max]) => {
       const rotationMat = new THREE.Matrix4().lookAt(
         new THREE.Vector3(min[0], 0, min[2]),
         new THREE.Vector3(max[0], 0, max[2]),
@@ -52,37 +137,71 @@ class RoomBufferGeometry extends THREE.BufferGeometry {
       ).length();
       const height = max[1] - min[1];
 
-      const aabbGeometry = new THREE.BoxGeometry(
-        this.PLANE_THICKNESS,
-        height,
-        depth
-      );
-      aabbGeometry.applyQuaternion(quaternion);
-      aabbGeometry.translate(
+      const center = new THREE.Vector3(
         (max[0] + min[0]) / 2,
         (max[1] + min[1]) / 2,
         (max[2] + min[2]) / 2
       );
 
-      const vertices = [...aabbGeometry.attributes.position.array];
-      const index = [...aabbGeometry.getIndex().array];
-      const data = index.flatMap((index) => [
-        vertices[index * 3],
-        vertices[index * 3 + 1],
-        vertices[index * 3 + 2],
-      ]);
-      return data;
+      const { vertices, uvs } = getWorldUvBoxGeometry({
+        width: this.PLANE_THICKNESS,
+        height,
+        depth,
+        center,
+        quaternion,
+      });
+
+      return {
+        vertices,
+        uvs,
+      };
     });
+    const planeVertices = planes.flatMap((plane) => plane.vertices);
+    const planeUvs = planes.flatMap((plane) => plane.uvs);
+
+    const { floorVertices, floorUvs } = (() => {
+      const floorVertices = [
+        [1, 0, 1],
+        [1, 0, -1],
+        [-1, 0, 1],
+        [1, 0, -1],
+        [-1, 0, -1],
+        [-1, 0, 1],
+      ]
+        .flatMap(([x, y, z]) => [
+          (x * this.width) / 2,
+          y,
+          (z * this.length) / 2,
+        ])
+        .flat();
+
+      const floorUvs = [
+        [1, 1],
+        [1, 0],
+        [0, 1],
+        [1, 0],
+        [0, 0],
+        [0, 1],
+      ]
+        .flatMap(([x, z]) => [x * this.width, z * this.length])
+        .flat();
+
+      return { floorVertices, floorUvs };
+    })();
 
     this.setAttribute(
       "position",
       new THREE.BufferAttribute(
-        new Float32Array([
-          ...this.floorVertices.flat(),
-          ...aabbVertices,
-          ...planeVertices,
-        ]),
+        new Float32Array([...floorVertices, ...aabbVertices, ...planeVertices]),
         3
+      )
+    );
+
+    this.setAttribute(
+      "uv",
+      new THREE.BufferAttribute(
+        new Float32Array([...floorUvs, ...aabbUvs, ...planeUvs]),
+        2
       )
     );
   }
@@ -95,20 +214,8 @@ class RoomBufferGeometry extends THREE.BufferGeometry {
    * roomBufferGeometry.setFloor(20, 20);
    */
   setFloor(width, length) {
-    this.floorVertices = [
-      [1, 0, 1],
-      [-1, 0, 1],
-      [1, 0, -1],
-      [1, 0, -1],
-      [-1, 0, 1],
-      [-1, 0, -1],
-      [1, 0, 1],
-      [1, 0, -1],
-      [-1, 0, 1],
-      [1, 0, -1],
-      [-1, 0, -1],
-      [-1, 0, 1],
-    ].flatMap(([x, y, z]) => [(x * width) / 2, y, (z * length) / 2]);
+    this.width = width;
+    this.length = length;
     this._updateGeometry();
   }
 
