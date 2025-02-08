@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Renderer from "react-coverage-heatmap";
+import doc from "./assets/doc.svg";
+import github from "./assets/github.svg";
+import floorplan from "./assets/floorplan.png";
 
 const wallsAABBs = [
   [
@@ -175,7 +178,7 @@ const App = () => {
   return (
     <>
       <Renderer
-        texture={"./floorplan.png"}
+        texture={floorplan}
         textCoordScale={[1 / 20, 1 / 20]}
         textCoordSoffset={[0.5, 0.5]}
         isPointcloud={isPointcloud}
@@ -229,6 +232,7 @@ const App = () => {
         style={{
           position: "fixed",
           right: "0",
+          top: "0",
           display: "flex",
           flexDirection: "column",
           gap: "10px",
@@ -236,10 +240,10 @@ const App = () => {
         }}
       >
         <a href={"/"}>
-          <img width="40px" src="./github.svg" />
+          <img width="40px" src={github} />
         </a>
         <a href={"./doc/"}>
-          <img width="40px" src="./doc.svg" />
+          <img width="40px" src={doc} />
         </a>
       </div>
       <div
