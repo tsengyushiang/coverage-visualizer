@@ -199,6 +199,7 @@ const App = () => {
             <div
               key={index}
               style={{
+                userSelect: "none",
                 position: "absolute",
                 left: `${label[0] * 100}%`,
                 top: `${label[1] * 100}%`,
@@ -218,7 +219,7 @@ const App = () => {
                 type="range"
                 id={`signal${index}`}
                 min={1e-3}
-                max={30}
+                max={24}
                 step={1e-1}
                 onChange={onIntensityChange(index)}
                 value={signalIntensities[index]}
@@ -239,7 +240,7 @@ const App = () => {
           padding: "10px",
         }}
       >
-        <a href={"/"}>
+        <a href={"https://github.com/yushiang-demo/coverage-visualizer"}>
           <img width="40px" src={github} />
         </a>
         <a href={"./doc/"}>

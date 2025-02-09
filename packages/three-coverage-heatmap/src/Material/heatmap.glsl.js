@@ -22,9 +22,17 @@ uniform int aabbCount;
 uniform vec3 planes[PLANE_COUNT];
 uniform int planeCount;
 
-float decay(float distance, float intensity) {
-  return 1.0 / pow(distance / intensity + 1.0, 2.0);
+float decay(float d, float intensity, float wallLoss) {
+  float A = 36.8;
+  float B = 43.8;
+  float C = 20.0;
+  float f = 2.4;
+  float loss = A * (log(d) / log(10.0)) + B + C * (log(f / 5.0) / log(10.0)) + wallLoss;
+  float result = intensity - loss;
+
+  return (clamp(result, -60.0, -30.0) + 60.0) / 30.0;
 }
+
 
 // adapted from intersectCube in https://github.com/evanw/webgl-path-tracing/blob/master/webgl-path-tracing.js
 // compute the near and far intersections of the cube (stored in the x and y components) using the slab method
@@ -177,8 +185,8 @@ Result getSignalDensity(vec4 world_position, vec2 indexMapCoordinate) {
       wallDistance += 0.15;
     }
 
-    float wallDecay = wallDistance * 0.2;
-    float newDensity = decay(totalDistance - wallDistance, signalIntensities[signalIndex]) - wallDecay;
+    float wallDecay = wallDistance * 5.0;
+    float newDensity = decay(totalDistance, signalIntensities[signalIndex], wallDecay);
 
     if (newDensity > density) {
       density = newDensity;

@@ -39,3 +39,4 @@ For further details, you can read the source code of the [fragmenet shader](./pa
 - [ray-aabb intersection](https://gist.github.com/DomNomNom/46bb1ce47f68d255fd5d)
 - [ray-triangle intersection](https://stackoverflow.com/questions/59257678/intersect-a-ray-with-a-triangle-in-glsl-c)
 - [3D volume rendering with WebGL / Three.js](https://observablehq.com/@mroehlig/3d-volume-rendering-with-webgl-three-js)
+- [WINNER II channel models A1 NLOS](https://www.researchgate.net/publication/234055761_WINNER_II_channel_models)
