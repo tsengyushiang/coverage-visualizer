@@ -134,6 +134,7 @@ const App = () => {
   const [isoValue, setIsoValue] = useState(0.5);
 
   const [signalIntensities, setSignalIntensities] = useState([10, 10]);
+  const [signalChannels, setSignalChannels] = useState([1, 6]);
   const [signals] = useState([
     [0, 1.1, -4],
     [0, 2.0, 8.1],
@@ -163,6 +164,13 @@ const App = () => {
     setSignalIntensities(copy);
   };
 
+  const onChannelChange = (index) => (e) => {
+    const value = parseInt(e.target.value);
+    const copy = [...signalChannels];
+    copy[index] = value;
+    setSignalChannels(copy);
+  };
+
   const labels = signals.map((signal, index) => {
     return {
       position: signal,
@@ -189,6 +197,7 @@ const App = () => {
         isHeatmapColor={isHeatmapColor}
         isSignalIndex={isSignalIndex}
         signalIntensities={signalIntensities}
+        signalChannels={signalChannels.map((channel) => channel / 14)}
         signals={signals}
         aabbs={aabbs}
         planes={planes}
@@ -203,28 +212,39 @@ const App = () => {
                 position: "absolute",
                 left: `${label[0] * 100}%`,
                 top: `${label[1] * 100}%`,
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
                 border: "1px solid gray",
                 borderRadius: "20px 20px 20px 0px",
                 padding: "10px",
-                height: "47px",
                 transform: "translate(0%, -100%)",
-                background: "#ffffff36",
+                background: "#ffffff",
+                display: "grid",
+                gridTemplateColumns: "auto auto",
               }}
             >
-              <label htmlFor={`signal${index}`}>{`Signal Strength`}</label>
+              <label htmlFor={`power${index}`}>{`Power: ${signalIntensities[
+                index
+              ].toFixed(0)}`}</label>
               <input
                 type="range"
-                id={`signal${index}`}
+                id={`power${index}`}
                 min={1e-3}
                 max={24}
                 step={1e-1}
                 onChange={onIntensityChange(index)}
                 value={signalIntensities[index]}
               />
-              <br />
+              <label
+                htmlFor={`channel${index}`}
+              >{`Channel: ${signalChannels[index]}`}</label>
+              <input
+                type="range"
+                id={`channel${index}`}
+                min={1}
+                max={14}
+                step={1}
+                onChange={onChannelChange(index)}
+                value={signalChannels[index]}
+              />
             </div>
           );
         })}

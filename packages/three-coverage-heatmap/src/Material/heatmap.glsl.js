@@ -16,6 +16,7 @@ const calculateIntensity = `
 
 uniform vec3 signals[SIGNAL_COUNT];
 uniform float signalIntensities[SIGNAL_COUNT];
+uniform float signalChannels[SIGNAL_COUNT];
 uniform int signalCount;
 uniform vec3 aabbs[AABB_COUNT];
 uniform int aabbCount;
@@ -123,7 +124,7 @@ float pointToLineDistance(vec2 point) {
   return abs(A * x0 + B * y0 + C) / sqrt(A * A + B * B);
 }
 
-vec3 getIndicesMapColor(vec2 fragCoord, float anglePercentage, float gridSize) {
+vec3 getIndicesMapColor(vec2 fragCoord, float anglePercentage, float gridSize, float signalIndex) {
   vec3 bgColor = vec3(0.0, 0.0, 0.0);
 
   float x = mod(fragCoord.x, gridSize) / gridSize;
@@ -137,7 +138,7 @@ vec3 getIndicesMapColor(vec2 fragCoord, float anglePercentage, float gridSize) {
   bool isLineFragment = pointToLineDistance(direction) < 0.05;
 
   if (isLineFragment) {
-    return hsvToRgb(anglePercentage, 1.0, 1.0);
+    return hsvToRgb(signalIndex, 1.0, 1.0);
   }
 
   return bgColor;
@@ -193,7 +194,7 @@ Result getSignalDensity(vec4 world_position, vec2 indexMapCoordinate) {
       maxSignalIndex = float(signalIndex) / float(signalCount);
     }
     if (newDensity > 1e-3)
-      color += getIndicesMapColor(indexMapCoordinate, float(signalIndex) / float(signalCount), 0.5);
+      color += getIndicesMapColor(indexMapCoordinate, signalChannels[signalIndex], 0.5, float(signalIndex) / float(signalCount));
   }
   bool isBackground = distance(color, vec3(0.0)) < 1e-3;
 

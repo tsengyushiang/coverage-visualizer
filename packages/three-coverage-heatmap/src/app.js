@@ -250,6 +250,18 @@ class App {
   }
 
   /**
+   * Sets the channel for each signal.
+   * @param {Array<number>} data An array containing normalized channel values for each signal.
+   * @example
+   * app.setSignalChannels([0.2, 0.5, 0.8]);
+   */
+  setSignalChannels(data) {
+    this._updateConfig({
+      signalChannels: data,
+    });
+  }
+
+  /**
    * Sets the floorplan used as a texture.
    * @param {string} url The URL of the floorplan image.
    * @param {Array<number>} scale - The scale factors to apply to the sampling coordinates.

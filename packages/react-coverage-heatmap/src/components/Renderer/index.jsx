@@ -15,6 +15,7 @@ const Renderer = ({
   isHeatmapColor,
   isSignalIndex,
   signalIntensities,
+  signalChannels,
   signals,
   aabbs,
   planes,
@@ -63,6 +64,10 @@ const Renderer = ({
   useEffect(() => {
     ThreeApp.setSignalIntensities(signalIntensities);
   }, [signalIntensities]);
+
+  useEffect(() => {
+    ThreeApp.setSignalChannels(signalChannels);
+  }, [signalChannels]);
 
   useEffect(() => {
     ThreeApp.setSignal(signals);

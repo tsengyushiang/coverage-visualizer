@@ -52,6 +52,9 @@ class HeatmapMaterial extends THREE.ShaderMaterial {
         signalIntensities: {
           value: Array(MAX_SIGNAL_COUNT).fill(10),
         },
+        signalChannels: {
+          value: Array(MAX_SIGNAL_COUNT).fill(0),
+        },
         signals: {
           value: Array(MAX_SIGNAL_COUNT).fill(new THREE.Vector3()),
         },
@@ -81,6 +84,7 @@ class HeatmapMaterial extends THREE.ShaderMaterial {
    * @param {number} options.signalCount - The count of signals.
    * @param {Array<THREE.Vector3>} options.signals - An array containing signal data.
    * @param {Array<number>} options.signalIntensities - An array containing signal intensities.
+   * @param {Array<number>} options.signalChannels - An array containing signal channels.
    * @param {Array<THREE.Vector3>} options.aabbs - An array containing axis-aligned bounding box data.
    * @param {Array<THREE.Vector3>} options.planes - An array containing plane data.
    * @param {THREE.Texture} options.map - An object representing a map.
@@ -96,6 +100,7 @@ class HeatmapMaterial extends THREE.ShaderMaterial {
     signalCount,
     signals,
     signalIntensities,
+    signalChannels,
     aabbs,
     planes,
     map,
@@ -131,6 +136,13 @@ class HeatmapMaterial extends THREE.ShaderMaterial {
       this.uniforms.signalIntensities.value = [
         ...signalIntensities,
         ...Array(MAX_SIGNAL_COUNT - signalIntensities.length).fill(0),
+      ];
+    }
+
+    if (signalChannels) {
+      this.uniforms.signalChannels.value = [
+        ...signalChannels,
+        ...Array(MAX_SIGNAL_COUNT - signalChannels.length).fill(0),
       ];
     }
 
