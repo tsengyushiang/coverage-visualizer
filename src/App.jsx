@@ -4,6 +4,18 @@ import doc from "./assets/doc.svg";
 import github from "./assets/github.svg";
 import floorplan from "./assets/floorplan.png";
 
+const InputRange = (props) => {
+  return (
+    <input
+      style={{
+        width: "70px",
+      }}
+      type="range"
+      {...props}
+    />
+  );
+};
+
 const wallsAABBs = [
   [
     [1.02, 0, -10],
@@ -213,19 +225,19 @@ const App = () => {
                 left: `${label[0] * 100}%`,
                 top: `${label[1] * 100}%`,
                 border: "1px solid gray",
-                borderRadius: "20px 20px 20px 0px",
                 padding: "10px",
-                transform: "translate(0%, -100%)",
-                background: "#ffffff",
+                transform: "translate(-50%, -100%)",
+                background: "rgba(255, 255, 255, 0.8)",
                 display: "grid",
-                gridTemplateColumns: "auto auto",
+                gridTemplateColumns: "auto",
               }}
             >
               <label htmlFor={`power${index}`}>{`Power: ${signalIntensities[
                 index
-              ].toFixed(0)}`}</label>
-              <input
-                type="range"
+              ]
+                .toFixed(0)
+                .padStart(2, 0)}`}</label>
+              <InputRange
                 id={`power${index}`}
                 min={1e-3}
                 max={24}
@@ -233,11 +245,12 @@ const App = () => {
                 onChange={onIntensityChange(index)}
                 value={signalIntensities[index]}
               />
-              <label
-                htmlFor={`channel${index}`}
-              >{`Channel: ${signalChannels[index]}`}</label>
-              <input
-                type="range"
+              <label htmlFor={`channel${index}`}>{`Channel: ${signalChannels[
+                index
+              ]
+                .toFixed(0)
+                .padStart(2, 0)}`}</label>
+              <InputRange
                 id={`channel${index}`}
                 min={1}
                 max={14}
@@ -275,96 +288,100 @@ const App = () => {
           margin: "10px",
           border: "1px solid gray",
           borderRadius: "10px",
-          background: "#ffffff36",
+          background: "rgba(255, 255, 255, 0.8)",
+          display: "grid",
+          gridTemplateColumns: "auto auto",
+          gap: "20px",
         }}
       >
-        <h4>Visualization</h4>
-        <input
-          type="checkbox"
-          id={"heatmapColor"}
-          onChange={(e) => setIsHeatmapColor(e.target.checked)}
-          checked={isHeatmapColor}
-        />
-        <label htmlFor="heatmapColor">Heatmap</label>
-        <br />
-        <input
-          type="checkbox"
-          id={"signalIndex"}
-          onChange={(e) => setIsSignalIndex(e.target.checked)}
-          checked={isSignalIndex}
-        />
-        <label htmlFor="signalIndex">Index map</label>
-        <br />
-        <input
-          type="checkbox"
-          id={"pointcloud"}
-          onChange={(e) => setIsPointcloud(e.target.checked)}
-          checked={isPointcloud}
-        />
-        <label htmlFor="pointcloud">Pointcloud</label>
-        <br />
-        <input
-          type="checkbox"
-          id={"isosurface"}
-          onChange={(e) => setIsIsosurface(e.target.checked)}
-          checked={isIsosurface}
-        />
-        <label htmlFor="isosurface">Isosurface</label>
-        <input
-          type="range"
-          id={"isoValue"}
-          min={0.2}
-          max={1}
-          step={1e-2}
-          onChange={(e) => setIsoValue(e.target.value)}
-          value={isoValue}
-        />
-        <br />
-        <input
-          type="checkbox"
-          id={"VolumeRendering"}
-          onChange={(e) => setIsVolumeRendering(e.target.checked)}
-          checked={isVolumeRendering}
-        />
-        <label htmlFor="VolumeRendering">Volume Rendering</label>
-        <br />
-        <input
-          type="checkbox"
-          id={"RealTimeVolumeRendering"}
-          onChange={(e) => setIsRealTimeVolumeRendering(e.target.checked)}
-          checked={isRealTimeVolumeRendering}
-        />
-        <label htmlFor="RealTimeVolumeRendering">
-          Real-Time Volume Rendering
-        </label>
-        <h4>Layout</h4>
-        <input
-          type="checkbox"
-          id={"wall"}
-          onChange={(e) => setHasWall(e.target.checked)}
-          checked={hasWall}
-        />
-        <label htmlFor="wall">has wall</label>
-        <br />
-        <input
-          type="checkbox"
-          id={"furniture"}
-          onChange={(e) => setHasFurniture(e.target.checked)}
-          checked={hasFurniture}
-        />
-        <label htmlFor="furniture">has furniture</label>
-        <br />
-        <label htmlFor="door">Door</label>
-        <input
-          type="range"
-          id={"door"}
-          min={1e-3}
-          max={1}
-          step={1e-2}
-          onChange={(e) => setDoorPercentage(e.target.value)}
-          value={doorPercentage}
-        />
-        <br />
+        <div>
+          <h4>Visualization</h4>
+          <input
+            type="checkbox"
+            id={"heatmapColor"}
+            onChange={(e) => setIsHeatmapColor(e.target.checked)}
+            checked={isHeatmapColor}
+          />
+          <label htmlFor="heatmapColor">Heatmap</label>
+          <br />
+          <input
+            type="checkbox"
+            id={"signalIndex"}
+            onChange={(e) => setIsSignalIndex(e.target.checked)}
+            checked={isSignalIndex}
+          />
+          <label htmlFor="signalIndex">Index map</label>
+          <br />
+          <input
+            type="checkbox"
+            id={"pointcloud"}
+            onChange={(e) => setIsPointcloud(e.target.checked)}
+            checked={isPointcloud}
+          />
+          <label htmlFor="pointcloud">Pointcloud</label>
+          <br />
+          <input
+            type="checkbox"
+            id={"isosurface"}
+            onChange={(e) => setIsIsosurface(e.target.checked)}
+            checked={isIsosurface}
+          />
+          <label htmlFor="isosurface">Isosurface</label>
+          <InputRange
+            id={"isoValue"}
+            min={0.2}
+            max={1}
+            step={1e-2}
+            onChange={(e) => setIsoValue(e.target.value)}
+            value={isoValue}
+          />
+          <br />
+          <input
+            type="checkbox"
+            id={"VolumeRendering"}
+            onChange={(e) => setIsVolumeRendering(e.target.checked)}
+            checked={isVolumeRendering}
+          />
+          <label htmlFor="VolumeRendering">Volume Rendering</label>
+          <br />
+          <input
+            type="checkbox"
+            id={"RealTimeVolumeRendering"}
+            onChange={(e) => setIsRealTimeVolumeRendering(e.target.checked)}
+            checked={isRealTimeVolumeRendering}
+          />
+          <label htmlFor="RealTimeVolumeRendering">
+            Real-Time Volume Rendering
+          </label>
+        </div>
+        <div>
+          <h4>Layout</h4>
+          <input
+            type="checkbox"
+            id={"wall"}
+            onChange={(e) => setHasWall(e.target.checked)}
+            checked={hasWall}
+          />
+          <label htmlFor="wall">has wall</label>
+          <br />
+          <input
+            type="checkbox"
+            id={"furniture"}
+            onChange={(e) => setHasFurniture(e.target.checked)}
+            checked={hasFurniture}
+          />
+          <label htmlFor="furniture">has furniture</label>
+          <br />
+          <label htmlFor="door">Door</label>
+          <InputRange
+            id={"door"}
+            min={1e-3}
+            max={1}
+            step={1e-2}
+            onChange={(e) => setDoorPercentage(e.target.value)}
+            value={doorPercentage}
+          />
+        </div>
       </div>
     </>
   );
