@@ -15,30 +15,63 @@ varying vec3 vRayOrigin;
 ${calculateIntensity}
 
 void main() {
-
   vec3 aabbmin = vec3(-volumeSize.x / 2.0, 0.0, -volumeSize.z / 2.0);
   vec3 aabbmax = vec3(volumeSize.x / 2.0, volumeSize.y, volumeSize.z / 2.0);
   vec2 intersection = intersectAABB(vRayOrigin, vRayDirection, aabbmin, aabbmax);
 
   if (intersection.x <= intersection.y) {
+
+    if (intersection.x < 0.0) {
+      intersection.x = 1e-3;
+    }
+
+    float nearestWall = 1e6;
+    for (int aabbIndex = 0; aabbIndex < aabbCount; aabbIndex++) {
+      vec2 nearFar = intersectAABB(vRayOrigin, vRayDirection, aabbs[2 * aabbIndex], aabbs[2 * aabbIndex + 1]);
+      bool noIntersections = nearFar.x > nearFar.y || nearFar.x < 0.0;
+      if (noIntersections) {
+        continue;
+      }
+      if(nearFar.x < nearestWall){
+        nearestWall = nearFar.x;
+      }
+    }
+    intersection.x = min(intersection.x,nearestWall);
+    intersection.y = min(intersection.y,nearestWall);
+
     vec3 entryPoint = vRayOrigin + vRayDirection * intersection.x;
     vec3 exitPoint = vRayOrigin + vRayDirection * intersection.y;
     vec3 entryToExit = exitPoint - entryPoint;
 
-    float density = 0.0;
-    for (float i = 0.0; i < 1.0; i += 4e-2) {
+    vec4 lastestColor = vec4(0.0);
+    for (float i = 0.0; i < 1.0; i += 1e-1) {
       vec3 point = entryPoint + entryToExit * i;
       Result result = getSignalDensity(vec4(point, 1.0), vec2(0.0));
       float value = result.density;
 
-      if (value > density && value >= isoValue) {
-        gl_FragColor = vec4(color, 0.5);
+      vec4 color = vec4(0.0);
+      if (value > 0.95) {
+        color = vec4(1.0, 0.0, 0.0, 0.5);
+      } else if (value > 0.5) {
+        color = vec4(0.0, 1.0, 0.0, 0.5);
+      } else if (value > 0.2) {
+        color = vec4(0.0, 0.0, 1.0, 0.5);
+      }
+
+      if (distance(lastestColor, color) < 1e-3) {
+        continue;
+      }
+
+      lastestColor = color;
+
+      gl_FragColor.rgb += (1.0 - gl_FragColor.a) * color.a * color.rgb;
+      gl_FragColor.a += (1.0 - gl_FragColor.a) * color.a;
+
+      if (gl_FragColor.a >= 0.95) {
         return;
       }
     }
   }
-  discard;
-
 }
 
 `;
@@ -71,24 +104,45 @@ void main() {
   vec2 intersection = intersectAABB(vRayOrigin, vRayDirection, aabbmin, aabbmax);
 
   if (intersection.x <= intersection.y) {
+
+    if (intersection.x < 0.0) {
+      intersection.x = 1e-3;
+    }
+
     vec3 entryPoint = vRayOrigin + vRayDirection * intersection.x;
     vec3 exitPoint = vRayOrigin + vRayDirection * intersection.y;
     vec3 entryToExit = exitPoint - entryPoint;
 
-    float density = 0.0;
+    vec4 lastestColor = vec4(0.0);
     for (float i = 0.0; i < 1.0; i += 2e-2) {
       vec3 point = entryPoint + entryToExit * i;
 
       vec3 coord = vec3(point.x / volumeSize.x + 0.5, point.z / volumeSize.z + 0.5, point.y / volumeSize.y);
       float value = texture(dataTexture, coord).x;
 
-      if (value > density && value >= isoValue) {
-        gl_FragColor = vec4(color, 0.5);
+      vec4 color = vec4(0.0);
+      if (value > 0.95) {
+        color = vec4(1.0, 0.0, 0.0, 0.5);
+      } else if (value > 0.5) {
+        color = vec4(0.0, 1.0, 0.0, 0.5);
+      } else if (value > 0.2) {
+        color = vec4(0.0, 0.0, 1.0, 0.5);
+      }
+
+      if (distance(lastestColor, color) < 1e-3) {
+        continue;
+      }
+
+      lastestColor = color;
+
+      gl_FragColor.rgb += (1.0 - gl_FragColor.a) * color.a * color.rgb;
+      gl_FragColor.a += (1.0 - gl_FragColor.a) * color.a;
+
+      if (gl_FragColor.a >= 0.95) {
         return;
       }
     }
   }
-  discard;
 }
 `;
 

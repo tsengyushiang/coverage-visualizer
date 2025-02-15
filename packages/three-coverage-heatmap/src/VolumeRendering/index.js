@@ -19,6 +19,7 @@ class VolumeRendering extends THREE.Mesh {
     this._samplesY = samplesY;
     this._samplesXZ = samplesXZ;
     this._sampleScale = sampleScale;
+    this.frustumCulled = false;
     material.setUniforms({ volumeSize: sampleScale });
   }
 
