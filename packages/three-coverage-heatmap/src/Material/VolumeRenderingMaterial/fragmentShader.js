@@ -25,12 +25,26 @@ void main() {
       intersection.x = 1e-3;
     }
 
+    float nearestWall = 1e6;
+    for (int aabbIndex = 0; aabbIndex < aabbCount; aabbIndex++) {
+      vec2 nearFar = intersectAABB(vRayOrigin, vRayDirection, aabbs[2 * aabbIndex], aabbs[2 * aabbIndex + 1]);
+      bool noIntersections = nearFar.x > nearFar.y || nearFar.x < 0.0;
+      if (noIntersections) {
+        continue;
+      }
+      if(nearFar.x < nearestWall){
+        nearestWall = nearFar.x;
+      }
+    }
+    intersection.x = min(intersection.x,nearestWall);
+    intersection.y = min(intersection.y,nearestWall);
+
     vec3 entryPoint = vRayOrigin + vRayDirection * intersection.x;
     vec3 exitPoint = vRayOrigin + vRayDirection * intersection.y;
     vec3 entryToExit = exitPoint - entryPoint;
 
     vec4 lastestColor = vec4(0.0);
-    for (float i = 0.0; i < 1.0; i += 5e-1) {
+    for (float i = 0.0; i < 1.0; i += 1e-1) {
       vec3 point = entryPoint + entryToExit * i;
       Result result = getSignalDensity(vec4(point, 1.0), vec2(0.0));
       float value = result.density;
