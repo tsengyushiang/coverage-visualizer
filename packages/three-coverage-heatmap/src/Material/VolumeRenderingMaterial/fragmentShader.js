@@ -43,7 +43,7 @@ void main() {
     vec3 exitPoint = vRayOrigin + vRayDirection * intersection.y;
     vec3 entryToExit = exitPoint - entryPoint;
 
-    vec4 lastestColor = vec4(0.0);
+    vec4 latestColor = vec4(0.0);
     for (float i = 0.0; i < 1.0; i += 1e-1) {
       vec3 point = entryPoint + entryToExit * i;
       Result result = getSignalDensity(vec4(point, 1.0), vec2(0.0));
@@ -58,11 +58,11 @@ void main() {
         color = vec4(0.0, 0.0, 1.0, 0.5);
       }
 
-      if (distance(lastestColor, color) < 1e-3) {
+      if (distance(latestColor, color) < 1e-3 || distance(color, vec4(0.0)) < 1e-3) {
         continue;
       }
 
-      lastestColor = color;
+      latestColor = color;
 
       gl_FragColor.rgb += (1.0 - gl_FragColor.a) * color.a * color.rgb;
       gl_FragColor.a += (1.0 - gl_FragColor.a) * color.a;
@@ -113,7 +113,7 @@ void main() {
     vec3 exitPoint = vRayOrigin + vRayDirection * intersection.y;
     vec3 entryToExit = exitPoint - entryPoint;
 
-    vec4 lastestColor = vec4(0.0);
+    vec4 latestColor = vec4(0.0);
     for (float i = 0.0; i < 1.0; i += 2e-2) {
       vec3 point = entryPoint + entryToExit * i;
 
@@ -129,11 +129,11 @@ void main() {
         color = vec4(0.0, 0.0, 1.0, 0.5);
       }
 
-      if (distance(lastestColor, color) < 1e-3) {
+      if (distance(latestColor, color) < 1e-3 || distance(color, vec4(0.0)) < 1e-3) {
         continue;
       }
 
-      lastestColor = color;
+      latestColor = color;
 
       gl_FragColor.rgb += (1.0 - gl_FragColor.a) * color.a * color.rgb;
       gl_FragColor.a += (1.0 - gl_FragColor.a) * color.a;
