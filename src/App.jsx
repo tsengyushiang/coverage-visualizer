@@ -278,13 +278,14 @@ const App = () => {
           background: "#ffffff36",
         }}
       >
+        <h4>Visualization</h4>
         <input
           type="checkbox"
           id={"heatmapColor"}
           onChange={(e) => setIsHeatmapColor(e.target.checked)}
           checked={isHeatmapColor}
         />
-        <label htmlFor="heatmapColor">show heatmap</label>
+        <label htmlFor="heatmapColor">Heatmap</label>
         <br />
         <input
           type="checkbox"
@@ -292,7 +293,7 @@ const App = () => {
           onChange={(e) => setIsSignalIndex(e.target.checked)}
           checked={isSignalIndex}
         />
-        <label htmlFor="signalIndex">show signal index map</label>
+        <label htmlFor="signalIndex">Index map</label>
         <br />
         <input
           type="checkbox"
@@ -300,7 +301,7 @@ const App = () => {
           onChange={(e) => setIsPointcloud(e.target.checked)}
           checked={isPointcloud}
         />
-        <label htmlFor="pointcloud">show pointcloud</label>
+        <label htmlFor="pointcloud">Pointcloud</label>
         <br />
         <input
           type="checkbox"
@@ -308,27 +309,7 @@ const App = () => {
           onChange={(e) => setIsIsosurface(e.target.checked)}
           checked={isIsosurface}
         />
-        <label htmlFor="isosurface">show isosurface</label>
-        <br />
-        <input
-          type="checkbox"
-          id={"VolumeRendering"}
-          onChange={(e) => setIsVolumeRendering(e.target.checked)}
-          checked={isVolumeRendering}
-        />
-        <label htmlFor="VolumeRendering">show Volume Rendering</label>
-        <br />
-        <input
-          type="checkbox"
-          id={"RealTimeVolumeRendering"}
-          onChange={(e) => setIsRealTimeVolumeRendering(e.target.checked)}
-          checked={isRealTimeVolumeRendering}
-        />
-        <label htmlFor="RealTimeVolumeRendering">
-          show Real-Time Volume Rendering
-        </label>
-        <br />
-        <label htmlFor="isoValue">isoValue</label>
+        <label htmlFor="isosurface">Isosurface</label>
         <input
           type="range"
           id={"isoValue"}
@@ -339,6 +320,24 @@ const App = () => {
           value={isoValue}
         />
         <br />
+        <input
+          type="checkbox"
+          id={"VolumeRendering"}
+          onChange={(e) => setIsVolumeRendering(e.target.checked)}
+          checked={isVolumeRendering}
+        />
+        <label htmlFor="VolumeRendering">Volume Rendering</label>
+        <br />
+        <input
+          type="checkbox"
+          id={"RealTimeVolumeRendering"}
+          onChange={(e) => setIsRealTimeVolumeRendering(e.target.checked)}
+          checked={isRealTimeVolumeRendering}
+        />
+        <label htmlFor="RealTimeVolumeRendering">
+          Real-Time Volume Rendering
+        </label>
+        <h4>Layout</h4>
         <input
           type="checkbox"
           id={"wall"}
