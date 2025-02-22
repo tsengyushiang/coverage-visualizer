@@ -1,8 +1,64 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Renderer from "react-coverage-heatmap";
 import doc from "./assets/doc.svg";
 import github from "./assets/github.svg";
 import floorplan from "./assets/floorplan.png";
+
+const SignalConfig = ({
+  power,
+  channel,
+  onPowerChanged,
+  onChannelChange,
+  isMoving,
+  setIsMoving,
+}) => {
+  return (
+    <div
+      onPointerMove={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      style={{
+        position: "fixed",
+        right: "0",
+        top: "0",
+        gap: "10px",
+        padding: "10px",
+        margin: "10px",
+        border: "1px solid gray",
+        borderRadius: "10px",
+        background: "rgba(255, 255, 255, 0.8)",
+        display: "grid",
+        gridTemplateColumns: "auto auto",
+      }}
+    >
+      <label htmlFor={`power`}>{`Power: ${power
+        .toFixed(0)
+        .padStart(2, 0)}`}</label>
+      <InputRange
+        id={`power`}
+        min={1e-3}
+        max={24}
+        step={1e-1}
+        onChange={onPowerChanged}
+        value={power}
+      />
+      <label htmlFor={`channel`}>{`Channel: ${channel
+        .toFixed(0)
+        .padStart(2, 0)}`}</label>
+      <InputRange
+        id={`channel`}
+        min={1}
+        max={14}
+        step={1}
+        onChange={onChannelChange}
+        value={channel}
+      />
+      <span>Position</span>
+      <button onClick={() => setIsMoving((prev) => !prev)}>
+        {isMoving ? "OK" : "Edit"}
+      </button>
+    </div>
+  );
+};
 
 const InputRange = (props) => {
   return (
@@ -132,6 +188,9 @@ const getPlanes = (percentage) => {
   ];
 };
 const App = () => {
+  const threeRef = useRef(null);
+  const [focusId, setFocusId] = useState(0);
+  const [isMoving, setIsMoving] = useState(false);
   const [isPointcloud, setIsPointcloud] = useState(false);
   const [isIsosurface, setIsIsosurface] = useState(false);
   const [labelPosition, setLabelPosition] = useState([]);
@@ -147,7 +206,7 @@ const App = () => {
 
   const [signalIntensities, setSignalIntensities] = useState([10, 10]);
   const [signalChannels, setSignalChannels] = useState([1, 6]);
-  const [signals] = useState([
+  const [signals, setSignals] = useState([
     [0, 1.1, -4],
     [0, 2.0, 8.1],
   ]);
@@ -195,9 +254,43 @@ const App = () => {
     };
   });
 
+  const updateSignal = (e) => {
+    const rect = e.target.getBoundingClientRect();
+    const normalizedX = (event.clientX - rect.left) / rect.width;
+    const normalizedY = (event.clientY - rect.top) / rect.height;
+
+    const target = threeRef.current.getWorldPositionFromScreen([
+      normalizedX,
+      normalizedY,
+    ]);
+
+    if (!target) return;
+
+    setSignals((prev) => {
+      const result = [...prev];
+      result[focusId] = target;
+      return result;
+    });
+  };
+
   return (
-    <>
+    <div
+      style={{ width: "100%", height: "100%" }}
+      onPointerDown={(e) => {
+        if (!isMoving) return;
+        if (!(e.target instanceof HTMLCanvasElement)) return;
+
+        updateSignal(e);
+        setIsMoving(false);
+      }}
+      onPointerMove={(e) => {
+        if (!isMoving) return;
+        if (!(e.target instanceof HTMLCanvasElement)) return;
+        updateSignal(e);
+      }}
+    >
       <Renderer
+        ref={threeRef}
         texture={floorplan}
         textCoordScale={[1 / 20, 1 / 20]}
         textCoordSoffset={[0.5, 0.5]}
@@ -218,55 +311,45 @@ const App = () => {
         {labelPosition.map((label, index) => {
           return (
             <div
+              onPointerMove={(e) => e.stopPropagation()}
+              onPointerDown={() => setFocusId(focusId === index ? null : index)}
               key={index}
               style={{
                 userSelect: "none",
+                pointerEvents: focusId === index && isMoving ? "none" : "auto",
                 position: "absolute",
                 left: `${label[0] * 100}%`,
                 top: `${label[1] * 100}%`,
-                border: "1px solid gray",
-                padding: "10px",
-                transform: "translate(-50%, -100%)",
-                background: "rgba(255, 255, 255, 0.8)",
-                display: "grid",
-                gridTemplateColumns: "auto",
+                border: `1px solid ${focusId === index ? "red" : "gray"}`,
+                transform: "translate(-50%, -50%)",
+                background:
+                  focusId === index && isMoving
+                    ? "rgba(255, 0, 0, 0.4)"
+                    : "rgba(255, 255, 255, 0.8)",
+                width: "30px",
+                height: "30px",
+                borderRadius: "50%",
+                cursor: "pointer",
               }}
-            >
-              <label htmlFor={`power${index}`}>{`Power: ${signalIntensities[
-                index
-              ]
-                .toFixed(0)
-                .padStart(2, 0)}`}</label>
-              <InputRange
-                id={`power${index}`}
-                min={1e-3}
-                max={24}
-                step={1e-1}
-                onChange={onIntensityChange(index)}
-                value={signalIntensities[index]}
-              />
-              <label htmlFor={`channel${index}`}>{`Channel: ${signalChannels[
-                index
-              ]
-                .toFixed(0)
-                .padStart(2, 0)}`}</label>
-              <InputRange
-                id={`channel${index}`}
-                min={1}
-                max={14}
-                step={1}
-                onChange={onChannelChange(index)}
-                value={signalChannels[index]}
-              />
-            </div>
+            />
           );
         })}
       </Renderer>
+      {Number.isInteger(focusId) && (
+        <SignalConfig
+          power={signalIntensities[focusId]}
+          channel={signalChannels[focusId]}
+          onPowerChanged={onIntensityChange(focusId)}
+          onChannelChange={onChannelChange(focusId)}
+          isMoving={isMoving}
+          setIsMoving={setIsMoving}
+        />
+      )}
       <div
         style={{
           position: "fixed",
-          right: "0",
-          top: "0",
+          left: "0",
+          top: "50px",
           display: "flex",
           flexDirection: "column",
           gap: "10px",
@@ -383,7 +466,7 @@ const App = () => {
           />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

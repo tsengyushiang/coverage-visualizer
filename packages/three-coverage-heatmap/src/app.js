@@ -10,6 +10,8 @@ import UniformSampler3D from "./Isosurface/UniformSampler3D";
 class App {
   constructor() {
     this._renderer = null;
+    this._camera = null;
+    this._raycaster = new THREE.Raycaster();
     this._scene = new THREE.Scene();
 
     const sizeXZ = 20;
@@ -69,6 +71,35 @@ class App {
     this.uniformSampler3D.setUniforms(data);
     this.volumeRenderingWoTexture3d.setUniforms(data);
     this._updateSamples();
+  }
+
+  /**
+   * Converts screen coordinates to world coordinates.
+   * This method uses the screen position (normalized coordinates) to calculate a ray and find where it intersects the objects in the scene.
+   * @param {Array<number>} data An array containing normalized screen coordinates [x, y], where x and y range from 0 to 1.
+   * @returns {Array<number>} A 3D array [x, y, z] representing the world coordinates where the ray intersects an object.
+   * @example
+   * app.getWorldPositionFromScreen([0.5, 0.5]);
+   */
+  getWorldPositionFromScreen(data) {
+    this._raycaster.setFromCamera(
+      new THREE.Vector2().fromArray([data[0] * 2 - 1, -data[1] * 2 + 1]),
+      this._camera
+    );
+
+    const intersects = this._raycaster.intersectObjects(
+      this._scene.children,
+      true
+    );
+
+    if (intersects.length > 0) {
+      const target = intersects[0];
+      return new THREE.Vector3()
+        .addVectors(target.point, target.face.normal.multiplyScalar(1e-1))
+        .toArray();
+    }
+
+    return null;
   }
 
   /**
@@ -357,6 +388,7 @@ class App {
 
     animate();
 
+    this._camera = camera;
     this._renderer = renderer;
     this._updateSamples();
 

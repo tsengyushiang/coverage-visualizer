@@ -1,89 +1,91 @@
-import React, { useEffect, useRef } from "react";
+import React, { forwardRef, useEffect, useRef } from "react";
 import ThreeCoverageHeatmap from "three-coverage-heatmap";
 
-const ThreeApp = new ThreeCoverageHeatmap();
-
-const Renderer = ({
-  texture,
-  textCoordScale,
-  textCoordSoffset,
-  isPointcloud,
-  isIsosurface,
-  isVolumeRendering,
-  isRealTimeVolumeRendering,
-  isoValue,
-  isHeatmapColor,
-  isSignalIndex,
-  signalIntensities,
-  signalChannels,
-  signals,
-  aabbs,
-  planes,
-  labels,
-  children,
-}) => {
+const Renderer = (
+  {
+    texture,
+    textCoordScale,
+    textCoordSoffset,
+    isPointcloud,
+    isIsosurface,
+    isVolumeRendering,
+    isRealTimeVolumeRendering,
+    isoValue,
+    isHeatmapColor,
+    isSignalIndex,
+    signalIntensities,
+    signalChannels,
+    signals,
+    aabbs,
+    planes,
+    labels,
+    children,
+  },
+  ref
+) => {
+  const threeRef = useRef(new ThreeCoverageHeatmap());
   const divRef = useRef(null);
   const canvasRef = useRef(null);
 
   useEffect(() => {
-    ThreeApp.setTexture(undefined, textCoordScale, textCoordSoffset);
+    threeRef.current.setTexture(undefined, textCoordScale, textCoordSoffset);
   }, [textCoordScale, textCoordSoffset]);
 
   useEffect(() => {
-    ThreeApp.setTexture(texture);
+    threeRef.current.setTexture(texture);
   }, [texture]);
 
   useEffect(() => {
-    ThreeApp.setIsPointcloud(isPointcloud);
+    threeRef.current.setIsPointcloud(isPointcloud);
   }, [isPointcloud]);
 
   useEffect(() => {
-    ThreeApp.setIsIsosurface(isIsosurface);
+    threeRef.current.setIsIsosurface(isIsosurface);
   }, [isIsosurface]);
 
   useEffect(() => {
-    ThreeApp.setIsVolumeRendering(isVolumeRendering);
+    threeRef.current.setIsVolumeRendering(isVolumeRendering);
   }, [isVolumeRendering]);
 
   useEffect(() => {
-    ThreeApp.setIsRealTimeVolumeRendering(isRealTimeVolumeRendering);
+    threeRef.current.setIsRealTimeVolumeRendering(isRealTimeVolumeRendering);
   }, [isRealTimeVolumeRendering]);
 
   useEffect(() => {
-    ThreeApp.setIsoValue(isoValue);
+    threeRef.current.setIsoValue(isoValue);
   }, [isoValue]);
 
   useEffect(() => {
-    ThreeApp.setIsHeatmapColor(isHeatmapColor);
+    threeRef.current.setIsHeatmapColor(isHeatmapColor);
   }, [isHeatmapColor]);
 
   useEffect(() => {
-    ThreeApp.setIsSignalIndex(isSignalIndex);
+    threeRef.current.setIsSignalIndex(isSignalIndex);
   }, [isSignalIndex]);
 
   useEffect(() => {
-    ThreeApp.setSignalIntensities(signalIntensities);
+    threeRef.current.setSignalIntensities(signalIntensities);
   }, [signalIntensities]);
 
   useEffect(() => {
-    ThreeApp.setSignalChannels(signalChannels);
+    threeRef.current.setSignalChannels(signalChannels);
   }, [signalChannels]);
 
   useEffect(() => {
-    ThreeApp.setSignal(signals);
+    threeRef.current.setSignal(signals);
   }, [signals]);
 
   useEffect(() => {
-    ThreeApp.setAABB(aabbs);
+    threeRef.current.setAABB(aabbs);
   }, [aabbs]);
 
   useEffect(() => {
-    ThreeApp.setPlane(planes);
+    threeRef.current.setPlane(planes);
   }, [planes]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const { resizeCanvas, dispose } = ThreeApp.init(canvas);
+    const { resizeCanvas, dispose } = threeRef.current.init(canvas);
     const onResize = () => {
       const viewportWidth = divRef.current.clientWidth;
       const viewportHeight = divRef.current.clientHeight;
@@ -92,6 +94,7 @@ const Renderer = ({
     onResize();
     window.addEventListener("resize", onResize);
 
+    if (ref) ref.current = threeRef.current;
     return () => {
       window.removeEventListener("resize", onResize);
       dispose();
@@ -99,7 +102,7 @@ const Renderer = ({
   }, []);
 
   useEffect(() => {
-    ThreeApp.setBillboard(
+    threeRef.current.setBillboard(
       labels.map((labels) => {
         return {
           position: labels.position,
@@ -125,4 +128,6 @@ const Renderer = ({
   );
 };
 
-export default Renderer;
+const RendererRef = forwardRef(Renderer);
+
+export default RendererRef;
