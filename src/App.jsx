@@ -11,25 +11,25 @@ const SignalConfig = ({
   onChannelChange,
   isMoving,
   setIsMoving,
+  onDelete,
+  id,
 }) => {
   return (
     <div
       onPointerMove={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
       style={{
-        position: "fixed",
-        right: "0",
-        top: "0",
         gap: "10px",
+        display: "grid",
+        gridTemplateColumns: "auto auto",
         padding: "10px",
-        margin: "10px",
         border: "1px solid gray",
         borderRadius: "10px",
         background: "rgba(255, 255, 255, 0.8)",
-        display: "grid",
-        gridTemplateColumns: "auto auto",
       }}
     >
+      <span>{`Id- ${id}`}</span>
+      <button onClick={onDelete}>Delete</button>
       <label htmlFor={`power`}>{`Power: ${power
         .toFixed(0)
         .padStart(2, 0)}`}</label>
@@ -330,21 +330,64 @@ const App = () => {
                 height: "30px",
                 borderRadius: "50%",
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-            />
+            >
+              <span>{index}</span>
+            </div>
           );
         })}
       </Renderer>
-      {Number.isInteger(focusId) && (
-        <SignalConfig
-          power={signalIntensities[focusId]}
-          channel={signalChannels[focusId]}
-          onPowerChanged={onIntensityChange(focusId)}
-          onChannelChange={onChannelChange(focusId)}
-          isMoving={isMoving}
-          setIsMoving={setIsMoving}
-        />
-      )}
+      <div
+        onPointerMove={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        style={{
+          position: "fixed",
+          right: "0",
+          top: "0",
+          gap: "10px",
+          padding: "10px",
+          margin: "10px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <button
+          onClick={() => {
+            setSignalIntensities((prev) => [...prev, 10]);
+            setSignalChannels((prev) => [...prev, 6]);
+            setSignals((prev) => [...prev, [0, 0, 0]]);
+            setFocusId(signals.length);
+            setIsMoving(true);
+          }}
+        >
+          Add New Signal
+        </button>
+        {Number.isInteger(focusId) && (
+          <SignalConfig
+            id={focusId}
+            onDelete={() => {
+              const idMatched = (prev) =>
+                prev.filter((_, index) => index !== focusId);
+              setSignalIntensities(idMatched);
+              setSignalChannels(idMatched);
+              setSignals(idMatched);
+              setLabelPosition([]);
+              setIsMoving(false);
+              setFocusId(null);
+            }}
+            power={signalIntensities[focusId]}
+            channel={signalChannels[focusId]}
+            onPowerChanged={onIntensityChange(focusId)}
+            onChannelChange={onChannelChange(focusId)}
+            isMoving={isMoving}
+            setIsMoving={setIsMoving}
+          />
+        )}
+      </div>
+
       <div
         style={{
           position: "fixed",
