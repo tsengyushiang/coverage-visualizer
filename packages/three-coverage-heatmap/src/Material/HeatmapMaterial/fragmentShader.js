@@ -30,12 +30,16 @@ vec3 opacityToHSV(float opacity) {
 
 void main() {
   vec4 color = texture2D(map, (world_position.xz * mapScale) + mapOffset);
-    if (!isHeatmapColor) {
+  if (!isHeatmapColor && !isSignalIndex) {
     gl_FragColor = color;
     return;
   }
 
   Result result = getSignalDensity(world_position, vUv);
+  if (result.density < 1e-5) {
+    gl_FragColor = color;
+    return;
+  }
   vec4 visualizedDensity = isSignalIndex ? result.signalColor : vec4(opacityToHSV(result.density), 1.0);
   gl_FragColor = mix(color, visualizedDensity, 0.4);
 }

@@ -29,6 +29,7 @@ const args = {
   ],
   aabbs: [...wallsAABBs, ...furnitureAABBs],
   planes: getPlanes(0.8),
+  labels: [],
 };
 
 export const Texture = {

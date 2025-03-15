@@ -13,7 +13,7 @@
     "build": "yarn build:app && yarn build:storybook && yarn build:jsdoc",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "storybook": "storybook dev -p 6006",
+    "storybook": "storybook dev -p 5173",
     "build:app": "vite build",
     "build:storybook": "storybook build -o ./dist/storybook",
     "build:jsdoc": "yarn run jsdoc -c jsdoc.json"

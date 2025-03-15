@@ -152,7 +152,7 @@ struct Result {
 Result getSignalDensity(vec4 world_position, vec2 indexMapCoordinate) {
   float maxSignalIndex = 1.0;
   vec3 color = vec3(0.0, 0.0, 0.0);
-  float density = 1e-3;
+  float density = 1e-6;
   for (int signalIndex = 0; signalIndex < signalCount; signalIndex++) {
     float wallDistance = 0.0;
     vec3 signalPosition = signals[signalIndex].xyz;

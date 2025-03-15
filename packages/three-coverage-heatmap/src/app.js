@@ -264,7 +264,6 @@ class App {
    */
   setIsSignalIndex(data) {
     this._updateConfig({
-      isHeatmapColor: data,
       isSignalIndex: data,
     });
   }

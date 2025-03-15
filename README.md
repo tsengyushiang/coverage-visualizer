@@ -9,6 +9,7 @@ Our project demonstrates the functionality of signal decay simulation through ob
 ## Development Environment Setup
 
 ```
+docker run --rm -it -v .:/app -w /app -p 5173:5173 node:20 bash
 yarn
 yarn dev
 ```
