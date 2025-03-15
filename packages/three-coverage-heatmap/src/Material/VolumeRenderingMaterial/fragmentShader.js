@@ -54,7 +54,7 @@ void main() {
         color = vec4(1.0, 0.0, 0.0, 0.5);
       } else if (value > 0.5) {
         color = vec4(0.0, 1.0, 0.0, 0.5);
-      } else if (value > 0.2) {
+      } else if (value > 1e-6) {
         color = vec4(0.0, 0.0, 1.0, 0.5);
       }
 
