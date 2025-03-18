@@ -333,7 +333,11 @@ class App {
       mesh.position.fromArray(object.position);
       mesh.onBeforeRender = (rendering, scene, camera) => {
         const coord = mesh.position.clone().project(camera);
-        object.onViewportChange(coord.x / 2 + 0.5, -coord.y / 2 + 0.5);
+        if (coord.z > 1) {
+          object.onViewportChange(-1, -1);
+        } else {
+          object.onViewportChange(coord.x / 2 + 0.5, -coord.y / 2 + 0.5);
+        }
       };
       this._billboardGroup.add(mesh);
     });

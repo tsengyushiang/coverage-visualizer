@@ -14,6 +14,13 @@ varying vec3 vRayOrigin;
 
 ${calculateIntensity}
 
+bool isRayOriginInAABB(vec3 vRayOrigin, vec3 aabbmin, vec3 aabbmax) {
+  bool insideX = (vRayOrigin.x >= aabbmin.x) && (vRayOrigin.x <= aabbmax.x);
+  bool insideY = (vRayOrigin.y >= aabbmin.y) && (vRayOrigin.y <= aabbmax.y);
+  bool insideZ = (vRayOrigin.z >= aabbmin.z) && (vRayOrigin.z <= aabbmax.z);
+  return insideX && insideY && insideZ;
+}
+    
 void main() {
   vec3 aabbmin = vec3(-volumeSize.x / 2.0, 0.0, -volumeSize.z / 2.0);
   vec3 aabbmax = vec3(volumeSize.x / 2.0, volumeSize.y, volumeSize.z / 2.0);
@@ -22,7 +29,11 @@ void main() {
   if (intersection.x <= intersection.y) {
 
     if (intersection.x < 0.0) {
-      intersection.x = 1e-3;
+      if (isRayOriginInAABB(vRayOrigin, aabbmin, aabbmax)) {
+        intersection.x = 1e-3;
+      } else {
+        discard;
+      }
     }
 
     float nearestWall = 1e6;
