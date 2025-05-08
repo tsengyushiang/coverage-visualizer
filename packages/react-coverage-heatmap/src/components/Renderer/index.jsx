@@ -5,7 +5,7 @@ const Renderer = (
   {
     texture,
     textCoordScale,
-    textCoordSoffset,
+    textCoordsOffset,
     isPointcloud,
     isIsosurface,
     isVolumeRendering,
@@ -28,8 +28,8 @@ const Renderer = (
   const canvasRef = useRef(null);
 
   useEffect(() => {
-    threeRef.current.setTexture(undefined, textCoordScale, textCoordSoffset);
-  }, [textCoordScale, textCoordSoffset]);
+    threeRef.current.setTexture(undefined, textCoordScale, textCoordsOffset);
+  }, [textCoordScale, textCoordsOffset]);
 
   useEffect(() => {
     threeRef.current.setTexture(texture);

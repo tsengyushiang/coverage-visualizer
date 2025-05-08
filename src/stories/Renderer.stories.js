@@ -16,7 +16,7 @@ export default {
 const args = {
   texture: "./floorplan.png",
   textCoordScale: [1 / 20, 1 / 20],
-  textCoordSoffset: [0.5, 0.5],
+  textCoordsOffset: [0.5, 0.5],
   isSignalIndex: false,
   isPointcloud: false,
   isIsosurface: false,

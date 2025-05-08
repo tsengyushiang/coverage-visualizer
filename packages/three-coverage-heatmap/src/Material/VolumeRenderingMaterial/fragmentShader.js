@@ -96,6 +96,13 @@ uniform vec3 color;
 varying vec3 vRayDirection;
 varying vec3 vRayOrigin;
 
+bool isRayOriginInAABB(vec3 vRayOrigin, vec3 aabbmin, vec3 aabbmax) {
+  bool insideX = (vRayOrigin.x >= aabbmin.x) && (vRayOrigin.x <= aabbmax.x);
+  bool insideY = (vRayOrigin.y >= aabbmin.y) && (vRayOrigin.y <= aabbmax.y);
+  bool insideZ = (vRayOrigin.z >= aabbmin.z) && (vRayOrigin.z <= aabbmax.z);
+  return insideX && insideY && insideZ;
+}
+
 // adapted from intersectCube in https://github.com/evanw/webgl-path-tracing/blob/master/webgl-path-tracing.js
 // compute the near and far intersections of the cube (stored in the x and y components) using the slab method
 // no intersection means vec.x > vec.y (really tNear > tFar)
@@ -117,7 +124,11 @@ void main() {
   if (intersection.x <= intersection.y) {
 
     if (intersection.x < 0.0) {
-      intersection.x = 1e-3;
+      if (isRayOriginInAABB(vRayOrigin, aabbmin, aabbmax)) {
+        intersection.x = 1e-3;
+      } else {
+        discard;
+      }
     }
 
     vec3 entryPoint = vRayOrigin + vRayDirection * intersection.x;
@@ -131,12 +142,12 @@ void main() {
       vec3 coord = vec3(point.x / volumeSize.x + 0.5, point.z / volumeSize.z + 0.5, point.y / volumeSize.y);
       float value = texture(dataTexture, coord).x;
 
-      vec4 color = vec4(0.0);
+       vec4 color = vec4(0.0);
       if (value > 0.95) {
         color = vec4(1.0, 0.0, 0.0, 0.5);
       } else if (value > 0.5) {
         color = vec4(0.0, 1.0, 0.0, 0.5);
-      } else if (value > 0.2) {
+      } else if (value > 1e-6) {
         color = vec4(0.0, 0.0, 1.0, 0.5);
       }
 

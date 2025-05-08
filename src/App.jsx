@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Renderer from "react-coverage-heatmap";
 import doc from "./assets/doc.svg";
 import github from "./assets/github.svg";
@@ -187,6 +187,9 @@ const getPlanes = (percentage) => {
     ],
   ];
 };
+const textCoordScale = [1 / 20, 1 / 20];
+const textCoordsOffset = [0.5, 0.5];
+
 const App = () => {
   const threeRef = useRef(null);
   const [focusId, setFocusId] = useState(0);
@@ -273,6 +276,11 @@ const App = () => {
     });
   };
 
+  const channels = useMemo(
+    () => signalChannels.map((channel) => channel / 14),
+    [signalChannels]
+  );
+
   return (
     <div
       style={{ width: "100%", height: "100%" }}
@@ -292,8 +300,8 @@ const App = () => {
       <Renderer
         ref={threeRef}
         texture={floorplan}
-        textCoordScale={[1 / 20, 1 / 20]}
-        textCoordSoffset={[0.5, 0.5]}
+        textCoordScale={textCoordScale}
+        textCoordsOffset={textCoordsOffset}
         isPointcloud={isPointcloud}
         isIsosurface={isIsosurface}
         isVolumeRendering={isVolumeRendering}
@@ -302,7 +310,7 @@ const App = () => {
         isHeatmapColor={isHeatmapColor}
         isSignalIndex={isSignalIndex}
         signalIntensities={signalIntensities}
-        signalChannels={signalChannels.map((channel) => channel / 14)}
+        signalChannels={channels}
         signals={signals}
         aabbs={aabbs}
         planes={planes}
