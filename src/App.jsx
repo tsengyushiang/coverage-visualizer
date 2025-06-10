@@ -419,7 +419,7 @@ const App = () => {
         style={{
           zIndex: "10",
           position: "fixed",
-          bottom: "10px",
+          bottom: "0px",
           width: "20px",
           height: "20px",
           borderRadius: "50%",
@@ -429,6 +429,8 @@ const App = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          padding: "2px",
+          margin: "5px",
         }}
         onClick={() => setIsOpen((prev) => !prev)}
       >
