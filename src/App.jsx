@@ -192,6 +192,7 @@ const textCoordsOffset = [0.5, 0.5];
 
 const App = () => {
   const threeRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(true);
   const [focusId, setFocusId] = useState(0);
   const [isMoving, setIsMoving] = useState(false);
   const [isPointcloud, setIsPointcloud] = useState(false);
@@ -416,6 +417,25 @@ const App = () => {
       </div>
       <div
         style={{
+          zIndex: "10",
+          position: "fixed",
+          bottom: "10px",
+          width: "20px",
+          height: "20px",
+          borderRadius: "50%",
+          border: "1px solid gray",
+          pointer: "cursor",
+          background: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+        onClick={() => setIsOpen((prev) => !prev)}
+      >
+        <span>{isOpen ? "×" : "⚙"}</span>
+      </div>
+      <div
+        style={{
           position: "fixed",
           bottom: "0",
           padding: "20px",
@@ -426,6 +446,8 @@ const App = () => {
           display: "grid",
           gridTemplateColumns: "auto auto",
           gap: "20px",
+          transform: isOpen ? "none" : "translateY(120%)",
+          transition: "1s",
         }}
       >
         <div>
