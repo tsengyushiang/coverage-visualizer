@@ -198,7 +198,7 @@ const App = () => {
   const [isPointcloud, setIsPointcloud] = useState(false);
   const [isIsosurface, setIsIsosurface] = useState(false);
   const [labelPosition, setLabelPosition] = useState([]);
-  const [isVolumeRendering, setIsVolumeRendering] = useState(false);
+  const [isVolumeRendering, setIsVolumeRendering] = useState(true);
   const [isRealTimeVolumeRendering, setIsRealTimeVolumeRendering] =
     useState(false);
   const [isHeatmapColor, setIsHeatmapColor] = useState(false);
@@ -363,17 +363,26 @@ const App = () => {
           flexDirection: "column",
         }}
       >
-        <button
-          onClick={() => {
-            setSignalIntensities((prev) => [...prev, 10]);
-            setSignalChannels((prev) => [...prev, 6]);
-            setSignals((prev) => [...prev, [0, 0, 0]]);
-            setFocusId(signals.length);
-            setIsMoving(true);
-          }}
-        >
-          Add New Signal
-        </button>
+        {signalIntensities.length < 30 && (
+          <button
+            onClick={() => {
+              setSignalIntensities((prev) => [...prev, Math.random() * 24]);
+              setSignalChannels((prev) => [...prev, 6]);
+              setSignals((prev) => [
+                ...prev,
+                [
+                  Math.random() * 20 - 10,
+                  Math.random() * 3,
+                  Math.random() * 20 - 10,
+                ],
+              ]);
+              setFocusId(signals.length);
+              setIsMoving(true);
+            }}
+          >
+            Add a random signal
+          </button>
+        )}
         {Number.isInteger(focusId) && (
           <SignalConfig
             id={focusId}

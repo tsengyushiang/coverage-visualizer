@@ -1,6 +1,6 @@
 import calculateIntensity from "../heatmap.glsl";
 
-const getFragmentShaderWoTexture3D = (signalCount, aabbCount, planeCount) => `
+const core = (signalCount, aabbCount, planeCount, compute) => `
 #define SIGNAL_COUNT ${signalCount}
 #define AABB_COUNT ${aabbCount * 2}
 #define PLANE_COUNT ${planeCount * 2}
@@ -13,6 +13,7 @@ varying vec3 vRayDirection;
 varying vec3 vRayOrigin;
 
 ${calculateIntensity}
+${compute}
 
 bool isRayOriginInAABB(vec3 vRayOrigin, vec3 aabbmin, vec3 aabbmax) {
   bool insideX = (vRayOrigin.x >= aabbmin.x) && (vRayOrigin.x <= aabbmax.x);
@@ -20,7 +21,7 @@ bool isRayOriginInAABB(vec3 vRayOrigin, vec3 aabbmin, vec3 aabbmax) {
   bool insideZ = (vRayOrigin.z >= aabbmin.z) && (vRayOrigin.z <= aabbmax.z);
   return insideX && insideY && insideZ;
 }
-    
+
 void main() {
   vec3 aabbmin = vec3(-volumeSize.x / 2.0, 0.0, -volumeSize.z / 2.0);
   vec3 aabbmax = vec3(volumeSize.x / 2.0, volumeSize.y, volumeSize.z / 2.0);
@@ -57,8 +58,7 @@ void main() {
     vec4 latestColor = vec4(0.0);
     for (float i = 0.0; i < 1.0; i += 1e-1) {
       vec3 point = entryPoint + entryToExit * i;
-      Result result = getSignalDensity(vec4(point, 1.0), vec2(0.0));
-      float value = result.density;
+      float value = compute(point);
 
       vec4 color = vec4(0.0);
       if (value > 0.95) {
@@ -84,88 +84,29 @@ void main() {
     }
   }
 }
-
 `;
 
-const getFragmentShader = () => `
+const realTimeRendering = `
+float compute(vec3 point) {
+  Result result = getSignalDensity(vec4(point, 1.0), vec2(0.0));
+  return result.density;
+}
+`;
+
+const texture3DRendering = `
 uniform sampler3D dataTexture;
-uniform vec3 volumeSize;
-uniform float isoValue;
-uniform vec3 color;
-
-varying vec3 vRayDirection;
-varying vec3 vRayOrigin;
-
-bool isRayOriginInAABB(vec3 vRayOrigin, vec3 aabbmin, vec3 aabbmax) {
-  bool insideX = (vRayOrigin.x >= aabbmin.x) && (vRayOrigin.x <= aabbmax.x);
-  bool insideY = (vRayOrigin.y >= aabbmin.y) && (vRayOrigin.y <= aabbmax.y);
-  bool insideZ = (vRayOrigin.z >= aabbmin.z) && (vRayOrigin.z <= aabbmax.z);
-  return insideX && insideY && insideZ;
-}
-
-// adapted from intersectCube in https://github.com/evanw/webgl-path-tracing/blob/master/webgl-path-tracing.js
-// compute the near and far intersections of the cube (stored in the x and y components) using the slab method
-// no intersection means vec.x > vec.y (really tNear > tFar)
-vec2 intersectAABB(vec3 rayOrigin, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
-  vec3 tMin = (boxMin - rayOrigin) / rayDir;
-  vec3 tMax = (boxMax - rayOrigin) / rayDir;
-  vec3 t1 = min(tMin, tMax);
-  vec3 t2 = max(tMin, tMax);
-  float tNear = max(max(t1.x, t1.y), t1.z);
-  float tFar = min(min(t2.x, t2.y), t2.z);
-  return vec2(tNear, tFar);
-}
-
-void main() {
-  vec3 aabbmin = vec3(-volumeSize.x / 2.0, 0.0, -volumeSize.z / 2.0);
-  vec3 aabbmax = vec3(volumeSize.x / 2.0, volumeSize.y, volumeSize.z / 2.0);
-  vec2 intersection = intersectAABB(vRayOrigin, vRayDirection, aabbmin, aabbmax);
-
-  if (intersection.x <= intersection.y) {
-
-    if (intersection.x < 0.0) {
-      if (isRayOriginInAABB(vRayOrigin, aabbmin, aabbmax)) {
-        intersection.x = 1e-3;
-      } else {
-        discard;
-      }
-    }
-
-    vec3 entryPoint = vRayOrigin + vRayDirection * intersection.x;
-    vec3 exitPoint = vRayOrigin + vRayDirection * intersection.y;
-    vec3 entryToExit = exitPoint - entryPoint;
-
-    vec4 latestColor = vec4(0.0);
-    for (float i = 0.0; i < 1.0; i += 2e-2) {
-      vec3 point = entryPoint + entryToExit * i;
-
-      vec3 coord = vec3(point.x / volumeSize.x + 0.5, point.z / volumeSize.z + 0.5, point.y / volumeSize.y);
-      float value = texture(dataTexture, coord).x;
-
-       vec4 color = vec4(0.0);
-      if (value > 0.95) {
-        color = vec4(1.0, 0.0, 0.0, 0.5);
-      } else if (value > 0.5) {
-        color = vec4(0.0, 1.0, 0.0, 0.5);
-      } else if (value > 1e-6) {
-        color = vec4(0.0, 0.0, 1.0, 0.5);
-      }
-
-      if (distance(latestColor, color) < 1e-3 || distance(color, vec4(0.0)) < 1e-3) {
-        continue;
-      }
-
-      latestColor = color;
-
-      gl_FragColor.rgb += (1.0 - gl_FragColor.a) * color.a * color.rgb;
-      gl_FragColor.a += (1.0 - gl_FragColor.a) * color.a;
-
-      if (gl_FragColor.a >= 0.95) {
-        return;
-      }
-    }
-  }
+float compute(vec3 point) {
+  vec3 coord = vec3(point.x / volumeSize.x + 0.5, point.z / volumeSize.z + 0.5, point.y / volumeSize.y);
+  return texture(dataTexture, coord).x;
 }
 `;
+
+const getFragmentShaderWoTexture3D = (signalCount, aabbCount, planeCount) => {
+  return core(signalCount, aabbCount, planeCount, realTimeRendering);
+};
+
+const getFragmentShader = (signalCount, aabbCount, planeCount) => {
+  return core(signalCount, aabbCount, planeCount, texture3DRendering);
+};
 
 export { getFragmentShader, getFragmentShaderWoTexture3D };

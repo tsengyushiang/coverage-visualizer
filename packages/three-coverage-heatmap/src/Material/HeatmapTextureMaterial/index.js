@@ -13,7 +13,7 @@ import { getFragmentShader } from "./fragmentShader";
 class HeatmapTextureMaterial extends THREE.ShaderMaterial {
   static _getUniformLimitation() {
     return {
-      MAX_SIGNAL_COUNT: 15,
+      MAX_SIGNAL_COUNT: 30,
       MAX_AABB_COUNT: 25,
       MAX_PLANE_COUNT: 80,
     };

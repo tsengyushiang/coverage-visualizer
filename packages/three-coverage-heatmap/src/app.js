@@ -69,6 +69,7 @@ class App {
   _updateConfig(data) {
     this.heatmapMaterial.setUniforms(data);
     this.uniformSampler3D.setUniforms(data);
+    this.volumeRendering.setUniforms(data);
     this.volumeRenderingWoTexture3d.setUniforms(data);
     this._updateSamples();
   }
@@ -240,8 +241,6 @@ class App {
    */
   setIsoValue(value) {
     this.isosurface.setIsoValue(value);
-    this.volumeRendering.setIsoValue(value);
-    this.volumeRenderingWoTexture3d.setIsoValue(value);
   }
 
   /**

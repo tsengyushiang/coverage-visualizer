@@ -13,7 +13,7 @@ import {
 class VolumeRenderingMaterial extends THREE.ShaderMaterial {
   static _getUniformLimitation() {
     return {
-      MAX_SIGNAL_COUNT: 15,
+      MAX_SIGNAL_COUNT: 30,
       MAX_AABB_COUNT: 25,
       MAX_PLANE_COUNT: 80,
     };
@@ -57,13 +57,9 @@ class VolumeRenderingMaterial extends THREE.ShaderMaterial {
         },
       },
       vertexShader: getVertexShader(),
-      fragmentShader: woTexture3d
-        ? getFragmentShaderWoTexture3D(
-            MAX_SIGNAL_COUNT,
-            MAX_AABB_COUNT,
-            MAX_PLANE_COUNT
-          )
-        : getFragmentShader(),
+      fragmentShader: (woTexture3d
+        ? getFragmentShaderWoTexture3D
+        : getFragmentShader)(MAX_SIGNAL_COUNT, MAX_AABB_COUNT, MAX_PLANE_COUNT),
     });
   }
 
