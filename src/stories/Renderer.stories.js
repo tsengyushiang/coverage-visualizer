@@ -1,5 +1,5 @@
 import Renderer from "./Renderer";
-import { wallsAABBs, furnitureAABBs, getPlanes } from "./data";
+import { wallsAABBs, furnitureAABBs, getPlanes } from "../data/floorplan";
 
 export default {
   title: "react-coverage-heatmap/Renderer",
@@ -14,21 +14,26 @@ export default {
 };
 
 const args = {
-  texture: "./floorplan.png",
-  textCoordScale: [1 / 20, 1 / 20],
-  textCoordsOffset: [0.5, 0.5],
+  texture: ["./floorplan.png"],
   isSignalIndex: false,
   isPointcloud: false,
   isIsosurface: false,
   isoValue: 0.5,
   isHeatmapColor: true,
+  signalChannels: [1, 0.5],
   signalIntensities: [10, 10],
   signals: [
-    [0, 1.1, -4],
-    [0, 2.0, 8.1],
+    [-0.38, 2.2, -8.1],
+    [-0.04, 1.1, 4.5],
   ],
-  aabbs: [...wallsAABBs, ...furnitureAABBs],
-  planes: getPlanes(0.8),
+  layouts: [
+    {
+      aabbs: [...wallsAABBs, ...furnitureAABBs],
+      planes: getPlanes(0.8),
+      position: [0, 0, 0],
+    },
+  ],
+  boundary: [20, 3, 20],
   labels: [],
 };
 

@@ -16,6 +16,7 @@ class VolumeRendering extends THREE.Mesh {
     const material = new VolumeRenderingMaterial(woTexture3D);
     super(geometry, material);
 
+    this.renderOrder = Number.MAX_SAFE_INTEGER;
     this._samplesY = samplesY;
     this._samplesXZ = samplesXZ;
     this._sampleScale = sampleScale;

@@ -7,12 +7,11 @@ const getFragmentShader = (signalCount, aabbCount, planeCount) => `
 ${calculateIntensity}
 
 uniform sampler2D map;
-uniform vec2 mapScale;
-uniform vec2 mapOffset;
 uniform bool isSignalIndex;
 uniform bool isHeatmapColor;
 
 varying vec2 vUv;
+varying vec2 vGridUv;
 varying vec4 world_position;
 
 vec3 hsv2rgb(vec3 c) {
@@ -29,13 +28,13 @@ vec3 opacityToHSV(float opacity) {
 }
 
 void main() {
-  vec4 color = texture2D(map, (world_position.xz * mapScale) + mapOffset);
+  vec4 color = texture2D(map, vUv);
   if (!isHeatmapColor && !isSignalIndex) {
     gl_FragColor = color;
     return;
   }
 
-  Result result = getSignalDensity(world_position, vUv);
+  Result result = getSignalDensity(world_position, vGridUv);
   if (result.density < 1e-5) {
     gl_FragColor = color;
     return;

@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Renderer from "react-coverage-heatmap";
 import doc from "./assets/doc.svg";
 import github from "./assets/github.svg";
-import floorplan from "./assets/floorplan.png";
+import * as floor1 from "./data/floorplan";
+import * as floor2 from "./data/floorplan2";
 
 const SignalConfig = ({
   power,
@@ -13,6 +14,7 @@ const SignalConfig = ({
   setIsMoving,
   onDelete,
   id,
+  position,
 }) => {
   return (
     <div
@@ -52,7 +54,12 @@ const SignalConfig = ({
         onChange={onChannelChange}
         value={channel}
       />
-      <span>Position</span>
+      <span>
+        Position <br />
+        {`(${position[0].toFixed(2)},${position[1].toFixed(
+          2
+        )},${position[2].toFixed(2)})`}
+      </span>
       <button onClick={() => setIsMoving((prev) => !prev)}>
         {isMoving ? "OK" : "Edit"}
       </button>
@@ -72,124 +79,6 @@ const InputRange = (props) => {
   );
 };
 
-const wallsAABBs = [
-  [
-    [1.02, 0, -10],
-    [1.45, 3, 1.2],
-  ],
-  [
-    [-4.6, 0, 0.73],
-    [1.02, 3, 1.2],
-  ],
-  [
-    [-9.55, 0, 0.73],
-    [-7.1, 3, 1.2],
-  ],
-  [
-    [3.85, 0, -10],
-    [4.25, 3, -4],
-  ],
-  [
-    [3.85, 0, -0.6],
-    [4.25, 3, 0.55],
-  ],
-  [
-    [4.25, 0, 0.12],
-    [8.34, 3, 0.55],
-  ],
-  [
-    [-9.65, 0, 8.2],
-    [-6.8, 3, 8.7],
-  ],
-  [
-    [-3.75, 0, 8.2],
-    [2.5, 3, 8.7],
-  ],
-  [
-    [5.55, 0, 8.2],
-    [8.34, 3, 8.7],
-  ],
-  [
-    [1.02, 3, -10],
-    [-9.65, 0, -9.55],
-  ],
-  [
-    [8.34, 3, -10],
-    [4.25, 0, -9.55],
-  ],
-  [
-    [-10.0, 3, 8.7],
-    [-9.55, 0, -10],
-  ],
-  [
-    [8.34, 0, -10],
-    [8.75, 3, 8.7],
-  ],
-];
-
-const furnitureAABBs = [
-  [
-    // sofa seat
-    [-5.1, 0, 2.2],
-    [-3.1, 0.3, 7.35],
-  ],
-  [
-    // sofa back
-    [-3.1, 0, 2.2],
-    [-2.5, 1.0, 7.35],
-  ],
-  [
-    // table
-    [1.45, 0.8, 2.5],
-    [4, 1.0, 5.2],
-  ],
-  [
-    // bed
-    [-2.1, 1.0, -9.55],
-    [-8.4, 0, -3.5],
-  ],
-  [
-    //cabinet
-    [1.02, 1.0, -9.55],
-    [-0.75, 0, -2.9],
-  ],
-];
-
-const getPlanes = (percentage) => {
-  const MAX_ANGLE = 0;
-  const MIN_ANGLE = -Math.PI / 2 + 1e-1;
-
-  const MAX_LENGTH = -1.7;
-  const MIN_LENGTH = 0;
-
-  return [
-    [
-      [
-        -7.1 +
-          2.5 * Math.cos(MAX_ANGLE * percentage + MIN_ANGLE * (1 - percentage)),
-        0,
-        0.73 +
-          2.5 * Math.sin(MAX_ANGLE * percentage + MIN_ANGLE * (1 - percentage)),
-      ],
-      [-7.1, 3, 0.73],
-    ],
-    [
-      [4.05, 0, -0.6],
-      [4.05, 3, -0.6 + MAX_LENGTH * percentage + MIN_LENGTH * (1 - percentage)],
-    ],
-    [
-      [-6.8, 0, 8.5],
-      [-3.75, 3, 8.5],
-    ],
-    [
-      [2.5, 0, 8.5],
-      [5.55, 3, 8.5],
-    ],
-  ];
-};
-const textCoordScale = [1 / 20, 1 / 20];
-const textCoordsOffset = [0.5, 0.5];
-
 const App = () => {
   const threeRef = useRef(null);
   const [isOpen, setIsOpen] = useState(true);
@@ -208,29 +97,39 @@ const App = () => {
   const [doorPercentage, setDoorPercentage] = useState(0.5);
   const [isoValue, setIsoValue] = useState(0.5);
 
-  const [signalIntensities, setSignalIntensities] = useState([10, 10]);
-  const [signalChannels, setSignalChannels] = useState([1, 6]);
+  const [signalIntensities, setSignalIntensities] = useState([10, 10, 20, 10]);
+  const [signalChannels, setSignalChannels] = useState([1, 6, 11, 1]);
   const [signals, setSignals] = useState([
-    [0, 1.1, -4],
-    [0, 2.0, 8.1],
+    [-0.38, 2.2, -18.1],
+    [-0.04, 1.1, -6.46],
+    [-0.29, 2.73, 5.5],
+    [-3.32, 2.59, 18.52],
   ]);
-  const [aabbs, setAABBs] = useState([]);
-  const [planes, setPlanes] = useState([]);
+  const [layouts, setLayouts] = useState([]);
 
   useEffect(() => {
-    let arr = [];
-    if (hasFurniture) {
-      arr = [...arr, ...furnitureAABBs];
-    }
-    if (hasWall) {
-      arr = [...arr, ...wallsAABBs];
-    }
-    setAABBs(arr);
-  }, [hasFurniture, hasWall]);
-
-  useEffect(() => {
-    setPlanes(getPlanes(doorPercentage));
-  }, [doorPercentage]);
+    const floors = [floor1, floor2];
+    const position = [
+      [0, 0, -10],
+      [0, 0, 10],
+    ];
+    setLayouts(
+      floors.map((floor, index) => {
+        let arr = [];
+        if (hasFurniture) {
+          arr = [...arr, ...floor.furnitureAABBs];
+        }
+        if (hasWall) {
+          arr = [...arr, ...floor.wallsAABBs];
+        }
+        return {
+          aabbs: arr,
+          planes: floor.getPlanes(doorPercentage),
+          position: position[index],
+        };
+      })
+    );
+  }, [hasFurniture, hasWall, doorPercentage]);
 
   const onIntensityChange = (index) => (e) => {
     const value = parseFloat(e.target.value);
@@ -282,6 +181,8 @@ const App = () => {
     [signalChannels]
   );
 
+  const textures = useMemo(() => [floor1.map, floor2.map], []);
+
   return (
     <div
       style={{ width: "100%", height: "100%" }}
@@ -300,9 +201,9 @@ const App = () => {
     >
       <Renderer
         ref={threeRef}
-        texture={floorplan}
-        textCoordScale={textCoordScale}
-        textCoordsOffset={textCoordsOffset}
+        texture={textures}
+        layouts={layouts}
+        boundary={[20, 3, 40]}
         isPointcloud={isPointcloud}
         isIsosurface={isIsosurface}
         isVolumeRendering={isVolumeRendering}
@@ -313,8 +214,6 @@ const App = () => {
         signalIntensities={signalIntensities}
         signalChannels={channels}
         signals={signals}
-        aabbs={aabbs}
-        planes={planes}
         labels={labels}
       >
         {labelPosition.map((label, index) => {
@@ -398,6 +297,7 @@ const App = () => {
             }}
             power={signalIntensities[focusId]}
             channel={signalChannels[focusId]}
+            position={signals[focusId]}
             onPowerChanged={onIntensityChange(focusId)}
             onChannelChange={onChannelChange(focusId)}
             isMoving={isMoving}

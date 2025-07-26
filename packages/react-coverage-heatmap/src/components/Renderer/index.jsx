@@ -4,8 +4,8 @@ import ThreeCoverageHeatmap from "three-coverage-heatmap";
 const Renderer = (
   {
     texture,
-    textCoordScale,
-    textCoordsOffset,
+    layouts,
+    boundary,
     isPointcloud,
     isIsosurface,
     isVolumeRendering,
@@ -16,21 +16,18 @@ const Renderer = (
     signalIntensities,
     signalChannels,
     signals,
-    aabbs,
-    planes,
     labels,
     children,
   },
   ref
 ) => {
-  const threeRef = useRef(new ThreeCoverageHeatmap());
+  const threeRef = useRef(new ThreeCoverageHeatmap(boundary));
   const divRef = useRef(null);
   const canvasRef = useRef(null);
 
   useEffect(() => {
-    threeRef.current.setTexture(undefined, textCoordScale, textCoordsOffset);
-  }, [textCoordScale, textCoordsOffset]);
-
+    threeRef.current.setLayouts(layouts);
+  }, [layouts]);
   useEffect(() => {
     threeRef.current.setTexture(texture);
   }, [texture]);
@@ -74,14 +71,6 @@ const Renderer = (
   useEffect(() => {
     threeRef.current.setSignal(signals);
   }, [signals]);
-
-  useEffect(() => {
-    threeRef.current.setAABB(aabbs);
-  }, [aabbs]);
-
-  useEffect(() => {
-    threeRef.current.setPlane(planes);
-  }, [planes]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

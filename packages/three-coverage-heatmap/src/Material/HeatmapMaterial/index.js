@@ -14,7 +14,7 @@ class HeatmapMaterial extends THREE.ShaderMaterial {
   static _getUniformLimitation() {
     return {
       MAX_SIGNAL_COUNT: 30,
-      MAX_AABB_COUNT: 25,
+      MAX_AABB_COUNT: 50,
       MAX_PLANE_COUNT: 80,
     };
   }
@@ -24,18 +24,13 @@ class HeatmapMaterial extends THREE.ShaderMaterial {
       HeatmapMaterial._getUniformLimitation();
 
     super({
+      transparent: true,
       uniforms: {
         isHeatmapColor: {
           value: true,
         },
         isSignalIndex: {
           value: false,
-        },
-        mapScale: {
-          value: new THREE.Vector2(1, 1),
-        },
-        mapOffset: {
-          value: new THREE.Vector2(0, 0),
         },
         map: {
           value: null,
@@ -88,8 +83,6 @@ class HeatmapMaterial extends THREE.ShaderMaterial {
    * @param {Array<THREE.Vector3>} options.aabbs - An array containing axis-aligned bounding box data.
    * @param {Array<THREE.Vector3>} options.planes - An array containing plane data.
    * @param {THREE.Texture} options.map - An object representing a map.
-   * @param {THREE.Vector2} options.mapScale - The scale factor to apply to the sampling coordinates.
-   * @param {THREE.Vector2} options.mapOffset - The offset for positioning the sampling coordinates.
    * @returns {void}
    */
   setUniforms({
@@ -104,8 +97,6 @@ class HeatmapMaterial extends THREE.ShaderMaterial {
     aabbs,
     planes,
     map,
-    mapScale,
-    mapOffset,
   }) {
     const { MAX_SIGNAL_COUNT, MAX_AABB_COUNT, MAX_PLANE_COUNT } =
       HeatmapMaterial._getUniformLimitation();
@@ -169,14 +160,6 @@ class HeatmapMaterial extends THREE.ShaderMaterial {
 
     if (map) {
       this.uniforms.map.value = map;
-    }
-
-    if (mapScale) {
-      this.uniforms.mapScale.value = mapScale;
-    }
-
-    if (mapOffset) {
-      this.uniforms.mapOffset.value = mapOffset;
     }
   }
 }

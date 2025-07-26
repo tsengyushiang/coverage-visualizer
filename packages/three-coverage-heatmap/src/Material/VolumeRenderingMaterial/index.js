@@ -14,7 +14,7 @@ class VolumeRenderingMaterial extends THREE.ShaderMaterial {
   static _getUniformLimitation() {
     return {
       MAX_SIGNAL_COUNT: 30,
-      MAX_AABB_COUNT: 25,
+      MAX_AABB_COUNT: 50,
       MAX_PLANE_COUNT: 80,
     };
   }

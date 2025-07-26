@@ -8,41 +8,29 @@ import UniformSampler3D from "./Isosurface/UniformSampler3D";
 
 /** @class */
 class App {
-  constructor() {
+  constructor(boundary) {
     this._renderer = null;
     this._camera = null;
     this._raycaster = new THREE.Raycaster();
     this._scene = new THREE.Scene();
 
-    const sizeXZ = 20;
-    const sizeY = 3;
-
     const samplesY = 4 ** 2;
     const samplesXZ = 25;
-    const samplesScale = [sizeXZ, sizeY, sizeXZ];
-    this.uniformSampler3D = new UniformSampler3D(
-      samplesY,
-      samplesXZ,
-      samplesScale
-    );
-    this.isosurface = new Isosurface(samplesY, samplesXZ, samplesScale);
+    this.uniformSampler3D = new UniformSampler3D(samplesY, samplesXZ, boundary);
+    this.isosurface = new Isosurface(samplesY, samplesXZ, boundary);
 
-    this.heatmapMaterial = new HeatmapMaterial();
-    this.roomGeometry = new RoomBufferGeometry();
-    this.roomGeometry.setFloor(sizeXZ, sizeXZ);
-    const room = new THREE.Mesh(this.roomGeometry, this.heatmapMaterial);
-    this._scene.add(room);
+    this.rooms = [
+      new THREE.Mesh(new RoomBufferGeometry(), new HeatmapMaterial()),
+      new THREE.Mesh(new RoomBufferGeometry(), new HeatmapMaterial()),
+    ];
+    this.rooms.forEach((room) => this._scene.add(room));
 
-    this.volumeRendering = new VolumeRendering(
-      samplesY,
-      samplesXZ,
-      samplesScale
-    );
+    this.volumeRendering = new VolumeRendering(samplesY, samplesXZ, boundary);
 
     this.volumeRenderingWoTexture3d = new VolumeRendering(
       samplesY,
       samplesXZ,
-      samplesScale,
+      boundary,
       true
     );
 
@@ -67,7 +55,7 @@ class App {
   }
 
   _updateConfig(data) {
-    this.heatmapMaterial.setUniforms(data);
+    this.rooms.forEach((room) => room.material.setUniforms(data));
     this.uniformSampler3D.setUniforms(data);
     this.volumeRendering.setUniforms(data);
     this.volumeRenderingWoTexture3d.setUniforms(data);
@@ -131,39 +119,73 @@ class App {
   }
 
   /**
-   * Sets the Axis-Aligned Bounding Box (AABB) data.
-   * @param {Array<Vector.Vector3Pair>} data An array containing two elements, each representing a start and end vector, both three-dimensional.
-   * @example
-   * app.setAABB([
-   *   [[0, 0, 0], [1, 1, 1]]
-   * ]);
+   * @typedef {Object} Layout
+   * @property {Array<Array<Array<number>>>} aabbs
+   *   An array of Axis-Aligned Bounding Boxes (AABBs).
+   *   Each AABB is defined by a pair of vectors.
+   *   Each vector includes five components: the first three for 3D position (x, y, z),
+   *   and the last two representing UV coordinates (u, v).
+   *
+   * @property {Array<Array<Array<number>>>} planes
+   *   An array of planes, each represented by a pair of 3D vectors.
+   *   Each vector contains either 3D position components ([x, y, z]) or optionally includes UV coordinates ([x, y, z, u, v]).
+   *
+   * @property {Array<number>} position
+   *   The position offset for the entire layout in 3D space.
    */
-  setAABB(data) {
-    if (!data) return;
-    this.roomGeometry.setAABB(data);
-    this._updateConfig({
-      aabbCount: data.length,
-      aabbs: data.flatMap(([min, max]) => [
-        new THREE.Vector3().fromArray(min),
-        new THREE.Vector3().fromArray(max),
-      ]),
-    });
-  }
 
   /**
-   * Sets the plane data.
-   * @param {Array<Vector.Vector3Pair>} data An array containing two elements, each representing a start and end vector, both three-dimensional.
+   * Sets layout data including AABBs, planes, position, and texture.
+   *
+   * @param {Array<Layout>} layouts - An array of layout definitions.
+   *
    * @example
-   * app.setPlane([
-   *   [[0, 0, 0], [1, 1, 1]]
+   * setLayouts([
+   *   {
+   *     aabbs: [[[0, 0, 0, 0, 0], [1, 1, 1, 1, 1]]],
+   *     planes: [[[0, 0, 0], [1, 1, 1]]],
+   *     position: [0, 0, 0],
+   *   }
    * ]);
    */
-  setPlane(data) {
-    if (!data) return;
-    this.roomGeometry.setPlane(data);
+  setLayouts(layouts) {
+    layouts.forEach((layout, index) => {
+      this.rooms[index].position.fromArray(layout.position);
+      this.rooms[index].geometry.setAABB(layout.aabbs);
+      this.rooms[index].geometry.setPlane(layout.planes);
+    });
+    const toWorldPosition = (layout) => {
+      return (aabb) => [
+        [
+          aabb[0][0] + layout.position[0],
+          aabb[0][1] + layout.position[1],
+          aabb[0][2] + layout.position[2],
+          aabb[0][3],
+          aabb[0][4],
+        ],
+        [
+          aabb[1][0] + layout.position[0],
+          aabb[1][1] + layout.position[1],
+          aabb[1][2] + layout.position[2],
+          aabb[1][3],
+          aabb[1][4],
+        ],
+      ];
+    };
+    const aabbs = layouts.flatMap((layout) => {
+      return layout.aabbs.map(toWorldPosition(layout));
+    });
+    const planes = layouts.flatMap((layout) => {
+      return layout.planes.map(toWorldPosition(layout));
+    });
     this._updateConfig({
-      planeCount: data.length * 2,
-      planes: data.flatMap(([min, max]) => [
+      aabbCount: aabbs.length,
+      aabbs: aabbs.flatMap(([min, max]) => [
+        new THREE.Vector3(min[0], min[1], min[2]),
+        new THREE.Vector3(max[0], max[1], max[2]),
+      ]),
+      planeCount: planes.length * 2,
+      planes: planes.flatMap(([min, max]) => [
         new THREE.Vector3().fromArray(min),
         new THREE.Vector3().fromArray(max),
       ]),
@@ -292,26 +314,25 @@ class App {
   }
 
   /**
-   * Sets the floorplan used as a texture.
-   * @param {string} url The URL of the floorplan image.
-   * @param {Array<number>} scale - The scale factors to apply to the sampling coordinates.
-   * @param {Array<number>} offset - The offsets for positioning the sampling coordinates.
+   * Sets the floorplan textures for rooms.
+   * @param {string[]} urls - An array of image URLs used as textures for each room.
+   * The index of the URL corresponds to the index of the room.
    * @example
-   * app.setTexture("https://example.com/floorplan.jpg", [1, 1], [0, 0]);
+   * app.setTexture([
+   *   "https://example.com/floorplan1.jpg",
+   *   "https://example.com/floorplan2.jpg"
+   * ]);
    */
-  setTexture(url, scale, offset) {
-    if (url) {
-      const texture = new THREE.TextureLoader().load(url);
-      this._updateConfig({
-        map: texture,
+  setTexture(urls) {
+    if (urls) {
+      urls.map((url, index) => {
+        const texture = new THREE.TextureLoader().load(url);
+        texture.flipY = false;
+        this.rooms[index].material.setUniforms({
+          map: texture,
+        });
       });
     }
-
-    if (scale && offset)
-      this._updateConfig({
-        mapScale: new THREE.Vector2().fromArray(scale),
-        mapOffset: new THREE.Vector2().fromArray(offset),
-      });
   }
 
   /**

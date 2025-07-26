@@ -52,6 +52,14 @@ const getWorldUvBoxGeometry = ({
     ),
     ...BackPlane.flatMap((v) =>
       new THREE.Vector3()
+        .fromArray([v[0] * width, 0, v[1] * depth])
+        .add(offset)
+        .applyQuaternion(quaternion)
+        .add(center)
+        .toArray()
+    ),
+    ...BackPlane.flatMap((v) =>
+      new THREE.Vector3()
         .fromArray([v[0] * width, v[1] * height, depth])
         .add(offset)
         .applyQuaternion(quaternion)
@@ -68,14 +76,26 @@ const getWorldUvBoxGeometry = ({
     ),
   ];
 
-  const uvs = [
+  const gridUvs = [
     ...frontPlane.flatMap(([u, v]) => [u * width, v * depth]),
     ...frontPlane.flatMap(([u, v]) => [u * width, v * height]),
     ...frontPlane.flatMap(([u, v]) => [u * height, v * depth]),
+    ...BackPlane.flatMap(([u, v]) => [u * width, v * depth]),
     ...BackPlane.flatMap(([u, v]) => [u * width, v * height]),
     ...BackPlane.flatMap(([u, v]) => [u * height, v * depth]),
   ];
-  return { vertices, uvs };
+
+  const uvIndices = [
+    ...[0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1],
+    ...[0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0],
+    ...[0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+
+    ...[0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0],
+    ...[0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1],
+    ...[1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0],
+  ];
+
+  return { vertices, gridUvs, uvIndices };
 };
 
 /**
@@ -89,8 +109,6 @@ class RoomBufferGeometry extends THREE.BufferGeometry {
     this.aabbArray = [];
     this.PLANE_THICKNESS = 8e-2;
     this.planeArray = [];
-    this.width = 0;
-    this.length = 0;
   }
 
   _updateGeometry() {
@@ -105,7 +123,7 @@ class RoomBufferGeometry extends THREE.BufferGeometry {
         (max[2] + min[2]) / 2
       );
 
-      const { vertices, uvs } = getWorldUvBoxGeometry({
+      const { vertices, gridUvs, uvIndices } = getWorldUvBoxGeometry({
         width,
         height,
         depth,
@@ -113,12 +131,20 @@ class RoomBufferGeometry extends THREE.BufferGeometry {
         quaternion: new THREE.Quaternion(0, 0, 0, 1),
       });
 
+      const uv = [
+        [min[3], max[3]],
+        [min[4], max[4]],
+      ];
+      const uvs = uvIndices.map((u, index) => uv[index % 2][u]);
+
       return {
         vertices,
+        gridUvs,
         uvs,
       };
     });
     const aabbVertices = aabbs.flatMap((aabb) => aabb.vertices);
+    const aabbGridUvs = aabbs.flatMap((aabb) => aabb.gridUvs);
     const aabbUvs = aabbs.flatMap((aabb) => aabb.uvs);
 
     const planes = this.planeArray.map(([min, max]) => {
@@ -143,7 +169,7 @@ class RoomBufferGeometry extends THREE.BufferGeometry {
         (max[2] + min[2]) / 2
       );
 
-      const { vertices, uvs } = getWorldUvBoxGeometry({
+      const { vertices, gridUvs, uvIndices } = getWorldUvBoxGeometry({
         width: this.PLANE_THICKNESS,
         height,
         depth,
@@ -151,72 +177,44 @@ class RoomBufferGeometry extends THREE.BufferGeometry {
         quaternion,
       });
 
+      const uv = [
+        [min[3], max[3]],
+        [min[4], max[4]],
+      ];
+      const uvs = uvIndices.map((u, index) => uv[index % 2][u]);
+
       return {
         vertices,
+        gridUvs,
         uvs,
       };
     });
     const planeVertices = planes.flatMap((plane) => plane.vertices);
+    const planeGridUvs = planes.flatMap((plane) => plane.gridUvs);
     const planeUvs = planes.flatMap((plane) => plane.uvs);
-
-    const { floorVertices, floorUvs } = (() => {
-      const floorVertices = [
-        [1, 0, 1],
-        [1, 0, -1],
-        [-1, 0, 1],
-        [1, 0, -1],
-        [-1, 0, -1],
-        [-1, 0, 1],
-      ]
-        .flatMap(([x, y, z]) => [
-          (x * this.width) / 2,
-          y,
-          (z * this.length) / 2,
-        ])
-        .flat();
-
-      const floorUvs = [
-        [1, 1],
-        [1, 0],
-        [0, 1],
-        [1, 0],
-        [0, 0],
-        [0, 1],
-      ]
-        .flatMap(([x, z]) => [x * this.width, z * this.length])
-        .flat();
-
-      return { floorVertices, floorUvs };
-    })();
 
     this.setAttribute(
       "position",
       new THREE.BufferAttribute(
-        new Float32Array([...floorVertices, ...aabbVertices, ...planeVertices]),
+        new Float32Array([...aabbVertices, ...planeVertices]),
         3
       )
     );
 
     this.setAttribute(
-      "uv",
+      "gridUv",
       new THREE.BufferAttribute(
-        new Float32Array([...floorUvs, ...aabbUvs, ...planeUvs]),
+        new Float32Array([...aabbGridUvs, ...planeGridUvs]),
         2
       )
     );
-  }
 
-  /**
-   * Sets the floor size.
-   * @param {number} width The width of the room.
-   * @param {number} length The length of the room.
-   * @example
-   * roomBufferGeometry.setFloor(20, 20);
-   */
-  setFloor(width, length) {
-    this.width = width;
-    this.length = length;
-    this._updateGeometry();
+    this.setAttribute(
+      "uv",
+      new THREE.BufferAttribute(new Float32Array([...aabbUvs, ...planeUvs]), 2)
+    );
+
+    this.computeBoundingSphere();
   }
 
   /**
